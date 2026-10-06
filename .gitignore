@@ -1,0 +1,18 @@
+.venv/
+__pycache__/
+*.pyc
+data/
+checkpoints/
+samples/
+backup/
+backup.zip
+*.npy
+*.zip
+.env
+kaggle.json
+.kaggle/
+*.log
+.DS_Store
+# Result exclusions
+results/celeba_baseline_progress.gif
+results/nn_check.png
