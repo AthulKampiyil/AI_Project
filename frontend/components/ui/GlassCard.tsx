@@ -1,13 +1,13 @@
 import React from "react";
 import { cn } from "@/lib/utils";
 
-interface GlassCardProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
   className?: string;
   glow?: boolean;
 }
 
-export const GlassCard: React.FC<GlassCardProps> = ({
+export const Card: React.FC<CardProps> = ({
   children,
   className,
   glow = false,
@@ -16,8 +16,8 @@ export const GlassCard: React.FC<GlassCardProps> = ({
   return (
     <div
       className={cn(
-        "rounded-2xl border border-white/[0.08] bg-[#0E1018]/80 backdrop-blur-xl p-5 text-[#EDEEF3] transition-all duration-200",
-        glow && "hover:border-[#8B7CFF]/30 hover:shadow-[0_8px_30px_rgb(139,124,255,0.12)]",
+        "rounded-2xl border border-border-subtle bg-surface p-5 text-text-primary shadow-sm transition-all duration-150",
+        glow && "hover:border-border-strong hover:shadow-md",
         className
       )}
       {...props}
@@ -26,3 +26,6 @@ export const GlassCard: React.FC<GlassCardProps> = ({
     </div>
   );
 };
+
+// Backward-compatible alias for existing imports
+export const GlassCard = Card;

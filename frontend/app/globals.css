@@ -1,29 +1,72 @@
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 :root {
-  --bg: #07080D;
-  --bg-elevated: #0E1018;
-  --glass: rgba(255, 255, 255, 0.04);
-  --border: rgba(255, 255, 255, 0.08);
-  --border-focus: #8B7CFF;
-  --text: #EDEEF3;
-  --text-muted: #8B8FA3;
-  --accent: #8B7CFF;
-  --accent-2: #38E1FF;
-  --warm: #FFB88A;
-  --success: #4ADE80;
-  --danger: #FF6B7A;
+  /* =========================================================================
+     LIGHT THEME (Professional Precision ML Workbench)
+     ========================================================================= */
+  --bg-app: #F8F9FA;
+  --bg-surface: #FFFFFF;
+  --bg-surface-elevated: #F1F3F5;
+  --bg-surface-hover: #E9ECEF;
+  --border-subtle: #E5E7EB;
+  --border-strong: #D1D5DB;
+  --border-focus: #4F46E5;
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #64748B;
+  --accent: #4F46E5;
+  --accent-hover: #4338CA;
+  --accent-subtle: rgba(79, 70, 229, 0.08);
+  --accent-secondary: #0284C7;
+  --warm: #D97706;
+  --success: #059669;
+  --danger: #DC2626;
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-popover: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+}
+
+.dark {
+  /* =========================================================================
+     DARK THEME (Crisp, Solid Engineering Observatory - No Glassmorphism)
+     ========================================================================= */
+  --bg-app: #090A0D;
+  --bg-surface: #101216;
+  --bg-surface-elevated: #16181F;
+  --bg-surface-hover: #1C1F28;
+  --border-subtle: #20232B;
+  --border-strong: #2F333E;
+  --border-focus: #6366F1;
+  --text-primary: #F1F5F9;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --accent: #6366F1;
+  --accent-hover: #4F46E5;
+  --accent-subtle: rgba(99, 102, 241, 0.12);
+  --accent-secondary: #38BDF8;
+  --warm: #F59E0B;
+  --success: #10B981;
+  --danger: #EF4444;
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-popover: 0 12px 30px -4px rgba(0, 0, 0, 0.6);
 }
 
 @theme {
-  --color-bg: var(--bg);
-  --color-bg-elevated: var(--bg-elevated);
-  --color-glass: var(--glass);
-  --color-border: var(--border);
-  --color-text: var(--text);
+  --color-app: var(--bg-app);
+  --color-surface: var(--bg-surface);
+  --color-surface-elevated: var(--bg-surface-elevated);
+  --color-surface-hover: var(--bg-surface-hover);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-strong: var(--border-strong);
+  --color-border-focus: var(--border-focus);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
   --color-text-muted: var(--text-muted);
   --color-accent: var(--accent);
-  --color-accent-2: var(--accent-2);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-subtle: var(--accent-subtle);
+  --color-accent-secondary: var(--accent-secondary);
   --color-warm: var(--warm);
   --color-success: var(--success);
   --color-danger: var(--danger);
@@ -36,79 +79,52 @@
   box-sizing: border-box;
 }
 
-html, body {
+html {
+  color-scheme: light dark;
+}
+
+body {
   margin: 0;
   padding: 0;
-  background-color: var(--bg);
-  color: var(--text);
+  background-color: var(--bg-app);
+  color: var(--text-primary);
   font-family: var(--font-sans);
   overflow-x: hidden;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-/* Subtle observatory background treatment: radial glows & noise */
-body::before {
-  content: "";
-  position: fixed;
-  top: -20%;
-  left: -15%;
-  width: 65vw;
-  height: 65vh;
-  background: radial-gradient(circle, rgba(139, 124, 255, 0.08) 0%, rgba(139, 124, 255, 0) 70%);
-  pointer-events: none;
-  z-index: 0;
+/* =========================================================================
+   SOLID PROFESSIONAL SURFACES (No Glassmorphism, No Radial Neon Gradients)
+   ========================================================================= */
+.surface-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.15s ease;
 }
 
-body::after {
-  content: "";
-  position: fixed;
-  bottom: -20%;
-  right: -15%;
-  width: 65vw;
-  height: 65vh;
-  background: radial-gradient(circle, rgba(56, 225, 255, 0.07) 0%, rgba(56, 225, 255, 0) 70%);
-  pointer-events: none;
-  z-index: 0;
+.surface-card-interactive:hover {
+  border-color: var(--border-strong);
 }
 
-/* Glasscard surface */
-.glass-panel {
-  background: rgba(14, 16, 24, 0.7);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-}
-
+/* Backward-compatibility aliases for legacy templates */
+.glass-panel,
 .glass-card {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  background-color: var(--bg-surface) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 1rem;
+  box-shadow: var(--shadow-card);
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  transition: border-color 0.15s ease;
 }
 
 .glass-card:hover {
-  border-color: rgba(139, 124, 255, 0.25);
-  box-shadow: 0 10px 30px -10px rgba(139, 124, 255, 0.15);
-}
-
-/* Face Stage warm radial glow */
-.face-stage-glow {
-  position: relative;
-}
-
-.face-stage-glow::before {
-  content: "";
-  position: absolute;
-  inset: -15px;
-  background: radial-gradient(circle at center, rgba(255, 184, 138, 0.12) 0%, rgba(255, 184, 138, 0) 70%);
-  border-radius: 32px;
-  pointer-events: none;
-  z-index: 0;
-  transition: opacity 0.3s ease;
+  border-color: var(--border-strong) !important;
+  box-shadow: var(--shadow-card) !important;
 }
 
 /* Native 64px pixelated rendering */
@@ -123,7 +139,7 @@ body::after {
   font-feature-settings: "tnum" 1, "zero" 1;
 }
 
-/* Custom minimal scrollbar */
+/* Precision scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -132,11 +148,11 @@ body::after {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 4px;
+  background: var(--border-strong);
+  border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(139, 124, 255, 0.4);
+  background: var(--text-muted);
 }
 
 /* Focus outline */

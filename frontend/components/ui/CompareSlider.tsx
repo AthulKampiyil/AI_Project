@@ -60,7 +60,7 @@ export const CompareSlider: React.FC<CompareSliderProps> = ({
       aria-label="Before/After Compare Divider"
       aria-valuenow={Math.round(sliderPosition)}
       className={cn(
-        "relative w-full aspect-square rounded-3xl border border-white/[0.08] bg-[#0E1018]/90 overflow-hidden shadow-2xl select-none cursor-ew-resize focus:outline-none focus:ring-2 focus:ring-[#8B7CFF]",
+        "relative w-full aspect-square rounded-2xl border border-border-subtle bg-surface-elevated overflow-hidden shadow-xs select-none cursor-ew-resize focus:outline-none focus:ring-2 focus:ring-accent",
         className
       )}
     >
@@ -92,19 +92,19 @@ export const CompareSlider: React.FC<CompareSliderProps> = ({
 
       {/* Draggable Divider Line & Handle */}
       <div
-        className="absolute top-0 bottom-0 w-0.5 bg-white shadow-[0_0_12px_rgba(255,255,255,0.7)] pointer-events-none"
+        className="absolute top-0 bottom-0 w-0.5 bg-border-strong pointer-events-none"
         style={{ left: `${sliderPosition}%` }}
       >
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-[#0E1018] border-2 border-white flex items-center justify-center text-white shadow-xl">
-          <MoveHorizontal className="w-4 h-4 text-[#8B7CFF]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-surface border-2 border-border-strong flex items-center justify-center text-text-primary shadow-md">
+          <MoveHorizontal className="w-3.5 h-3.5 text-text-muted" />
         </div>
       </div>
 
       {/* Labels */}
-      <div className="absolute top-3 left-3 z-10 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-[10px] font-mono font-semibold text-[#8B8FA3]">
+      <div className="absolute top-3 left-3 z-10 px-2.5 py-1 rounded-md bg-surface border border-border-subtle text-[10px] font-mono font-semibold text-text-muted shadow-xs">
         BASE IDENTITY
       </div>
-      <div className="absolute top-3 right-3 z-10 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-[10px] font-mono font-semibold text-[#8B7CFF]">
+      <div className="absolute top-3 right-3 z-10 px-2.5 py-1 rounded-md bg-surface border border-border-subtle text-[10px] font-mono font-semibold text-accent shadow-xs">
         SCULPTED
       </div>
     </div>

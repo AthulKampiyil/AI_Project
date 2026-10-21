@@ -18,7 +18,7 @@ export const BottomNav: React.FC = () => {
   const pathname = usePathname();
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-white/[0.08] bg-[#07080D]/95 backdrop-blur-2xl px-2 py-2 flex items-center justify-around shadow-2xl">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border-subtle bg-surface px-2 py-1.5 flex items-center justify-around shadow-sm">
       {TABS.map((tab) => {
         const Icon = tab.icon;
         const isActive = pathname.startsWith(tab.path);
@@ -28,14 +28,14 @@ export const BottomNav: React.FC = () => {
             key={tab.path}
             href={tab.path}
             className={cn(
-              "flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all",
+              "flex flex-col items-center gap-1 py-1.5 px-3 rounded-lg transition-colors",
               isActive
-                ? "text-[#8B7CFF]"
-                : "text-[#8B8FA3] hover:text-[#EDEEF3]"
+                ? "text-accent font-medium bg-accent-subtle"
+                : "text-text-muted hover:text-text-primary"
             )}
           >
-            <Icon className="w-5 h-5" />
-            <span className="text-[10px] font-medium tracking-tight">
+            <Icon className="w-4 h-4" />
+            <span className="text-[10px] tracking-tight">
               {tab.label}
             </span>
           </Link>

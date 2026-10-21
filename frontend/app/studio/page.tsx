@@ -5,18 +5,17 @@ import { useSearchParams } from "next/navigation";
 import { useStudioStore } from "@/store/useStudioStore";
 import { sculptFace } from "@/lib/api";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { GlassCard } from "@/components/ui/GlassCard";
+import { Card } from "@/components/ui/GlassCard";
 import { SeedInput } from "@/components/ui/SeedInput";
 import { LatentSlider } from "@/components/ui/LatentSlider";
 import { FaceStage } from "@/components/ui/FaceStage";
 import { CompareSlider } from "@/components/ui/CompareSlider";
 import {
   RotateCcw,
-  Sparkles,
   Layers,
   Split,
   Eye,
-  Sliders,
+  SlidersHorizontal,
   Check,
 } from "lucide-react";
 import { Suspense } from "react";
@@ -110,14 +109,14 @@ function StudioContent() {
         badge="100-D Hypersphere"
       >
         {/* Stage View Toggles */}
-        <div className="flex items-center gap-2 bg-[#0E1018] p-1.5 rounded-2xl border border-white/[0.08]">
+        <div className="flex items-center gap-1.5 bg-surface-elevated p-1 rounded-xl border border-border-subtle">
           <button
             type="button"
             onClick={() => setCompareMode(false)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
               !isCompareMode
-                ? "bg-[#8B7CFF]/15 text-[#8B7CFF] border border-[#8B7CFF]/30 font-semibold"
-                : "text-[#8B8FA3] hover:text-[#EDEEF3]"
+                ? "bg-surface text-accent font-semibold shadow-xs border border-border-subtle"
+                : "text-text-muted hover:text-text-primary"
             }`}
           >
             <Layers className="w-3.5 h-3.5" />
@@ -127,26 +126,26 @@ function StudioContent() {
           <button
             type="button"
             onClick={() => setCompareMode(true)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
               isCompareMode
-                ? "bg-[#8B7CFF]/15 text-[#8B7CFF] border border-[#8B7CFF]/30 font-semibold"
-                : "text-[#8B8FA3] hover:text-[#EDEEF3]"
+                ? "bg-surface text-accent font-semibold shadow-xs border border-border-subtle"
+                : "text-text-muted hover:text-text-primary"
             }`}
           >
             <Split className="w-3.5 h-3.5" />
             <span>Wipe Handle</span>
           </button>
 
-          <span className="text-white/10">|</span>
+          <span className="text-border-strong select-none">|</span>
 
           {/* Native 64px Toggle */}
           <button
             type="button"
             onClick={() => setNative64(!isNative64)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono transition-all ${
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-mono transition-colors cursor-pointer ${
               isNative64
-                ? "bg-[#38E1FF]/15 text-[#38E1FF] border border-[#38E1FF]/30"
-                : "text-[#8B8FA3] hover:text-[#EDEEF3]"
+                ? "bg-accent-subtle text-accent border border-accent/30 font-medium"
+                : "text-text-muted hover:text-text-primary"
             }`}
             title="Toggle Raw 64x64 Pixelated View"
           >
@@ -157,10 +156,10 @@ function StudioContent() {
       </PageHeader>
 
       {/* Main Workspace: Stage (left) + Control Panel (right) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* STAGE ZONE (Large soft lit specimen stages) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* STAGE ZONE */}
         <div className="lg:col-span-8 space-y-4">
-          <GlassCard className="p-6 relative">
+          <Card className="p-6 relative">
             {!isCompareMode ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="space-y-2">
@@ -171,7 +170,7 @@ function StudioContent() {
                     seed={seed}
                     pixelated={isNative64}
                   />
-                  <div className="text-center text-[11px] font-mono text-[#8B8FA3]">
+                  <div className="text-center text-[11px] font-mono text-text-muted">
                     Original Latent Specimen
                   </div>
                 </div>
@@ -184,7 +183,7 @@ function StudioContent() {
                     seed={seed}
                     pixelated={isNative64}
                   />
-                  <div className="text-center text-[11px] font-mono text-[#8B7CFF]">
+                  <div className="text-center text-[11px] font-mono text-accent font-medium">
                     Vector Modified (z + Δz)
                   </div>
                 </div>
@@ -196,50 +195,50 @@ function StudioContent() {
                   sculptedImage={sculptedImage}
                   pixelated={isNative64}
                 />
-                <div className="text-center text-[11px] font-mono text-[#8B8FA3]">
+                <div className="text-center text-[11px] font-mono text-text-muted">
                   Drag handle or use ← / → arrow keys to compare identities
                 </div>
               </div>
             )}
 
             {/* Scientific Monospace Telemetry Footer */}
-            <div className="mt-6 pt-4 border-t border-white/[0.08] flex flex-wrap items-center justify-between gap-3 text-xs font-mono text-[#8B8FA3]">
+            <div className="mt-6 pt-4 border-t border-border-subtle flex flex-wrap items-center justify-between gap-3 text-xs font-mono text-text-muted">
               <div className="flex items-center gap-4">
                 <span>
-                  seed: <strong className="text-[#EDEEF3]">#{seed}</strong>
+                  seed: <strong className="text-text-primary">#{seed}</strong>
                 </span>
                 <span>
-                  ||z||: <strong className="text-[#38E1FF]">{zNorm}</strong>
+                  ||z||: <strong className="text-accent">{zNorm}</strong>
                 </span>
                 <span>
                   ||Δ||:{" "}
                   <strong
-                    className={delta > 0 ? "text-[#8B7CFF]" : "text-[#8B8FA3]"}
+                    className={delta > 0 ? "text-accent" : "text-text-secondary"}
                   >
                     {delta}
                   </strong>
                 </span>
               </div>
 
-              <div className="text-[11px] text-[#8B8FA3]/80">
+              <div className="text-[11px] text-text-muted">
                 Hypersphere Norm-Preserved
               </div>
             </div>
-          </GlassCard>
+          </Card>
         </div>
 
-        {/* CONTROLS ZONE (340px slim precision glass control panel) */}
+        {/* CONTROLS ZONE */}
         <div className="lg:col-span-4 space-y-4">
-          <GlassCard className="p-5 space-y-6">
-            <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
-              <div className="flex items-center gap-2 text-sm font-semibold text-[#EDEEF3]">
-                <Sliders className="w-4 h-4 text-[#8B7CFF]" />
+          <Card className="p-5 space-y-5">
+            <div className="flex items-center justify-between border-b border-border-subtle pb-3">
+              <div className="flex items-center gap-2 text-sm font-semibold text-text-primary">
+                <SlidersHorizontal className="w-4 h-4 text-accent" />
                 <span>Latent Attributes</span>
               </div>
               <button
                 type="button"
                 onClick={resetSliders}
-                className="flex items-center gap-1 text-[11px] font-mono text-[#8B8FA3] hover:text-[#8B7CFF] transition-colors"
+                className="flex items-center gap-1 text-[11px] font-mono text-text-muted hover:text-accent transition-colors cursor-pointer"
                 title="Reset all feature sliders"
               >
                 <RotateCcw className="w-3 h-3" />
@@ -250,12 +249,12 @@ function StudioContent() {
             {/* Seed & Preset Controller */}
             <SeedInput value={seed} onChange={setSeed} disabled={isLoading} />
 
-            <div className="border-t border-white/[0.06] pt-4 space-y-5">
+            <div className="border-t border-border-subtle pt-4 space-y-4">
               {/* Sliders */}
               <LatentSlider
                 label="Smile Intensity"
-                leftPole="Serious / Neutral"
-                rightPole="Broad Smile"
+                leftPole="Neutral"
+                rightPole="Smile"
                 value={smile}
                 onChange={(val) => setSlider("smile", val)}
                 disabled={isLoading}
@@ -263,8 +262,8 @@ function StudioContent() {
 
               <LatentSlider
                 label="Head Turn / Pose"
-                leftPole="Turn Left"
-                rightPole="Turn Right"
+                leftPole="Left"
+                rightPole="Right"
                 value={pose}
                 onChange={(val) => setSlider("pose", val)}
                 disabled={isLoading}
@@ -272,8 +271,8 @@ function StudioContent() {
 
               <LatentSlider
                 label="Hair Volume / Gender Tilt"
-                leftPole="Masculine Tilt"
-                rightPole="Feminine / Volume"
+                leftPole="Masculine"
+                rightPole="Feminine"
                 value={hair}
                 onChange={(val) => setSlider("hair", val)}
                 disabled={isLoading}
@@ -281,8 +280,8 @@ function StudioContent() {
 
               <LatentSlider
                 label="Scene Brightness"
-                leftPole="Low Key Studio"
-                rightPole="Specular Bright"
+                leftPole="Low Key"
+                rightPole="Bright"
                 value={light}
                 onChange={(val) => setSlider("light", val)}
                 disabled={isLoading}
@@ -290,14 +289,14 @@ function StudioContent() {
             </div>
 
             {/* Action Buttons */}
-            <div className="pt-2 flex items-center gap-3">
+            <div className="pt-2 flex items-center gap-2">
               <button
                 type="button"
                 onClick={handleManualApply}
                 disabled={isLoading}
-                className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#8B7CFF] to-[#9B8EFF] hover:opacity-95 text-black font-semibold text-xs transition-all shadow-[0_0_20px_rgba(139,124,255,0.3)] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                className="flex-1 py-2 px-4 rounded-xl bg-accent hover:bg-accent-hover text-white font-medium text-xs transition-colors shadow-xs flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
               >
-                <Sparkles className="w-4 h-4 fill-black" />
+                <Check className="w-3.5 h-3.5" />
                 <span>Apply Identity</span>
               </button>
 
@@ -305,13 +304,13 @@ function StudioContent() {
                 type="button"
                 onClick={resetSliders}
                 disabled={isLoading || delta === 0}
-                className="p-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-[#EDEEF3] transition-colors disabled:opacity-30"
+                className="p-2 rounded-xl bg-surface-elevated hover:bg-surface-hover border border-border-subtle text-text-secondary hover:text-text-primary transition-colors disabled:opacity-30 cursor-pointer"
                 title="Reset Sliders"
               >
                 <RotateCcw className="w-4 h-4" />
               </button>
             </div>
-          </GlassCard>
+          </Card>
         </div>
       </div>
     </div>
@@ -322,7 +321,7 @@ export default function StudioPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex items-center justify-center p-20 font-mono text-xs text-[#8B8FA3]">
+        <div className="flex items-center justify-center p-20 font-mono text-xs text-text-muted">
           Loading Latent Studio...
         </div>
       }

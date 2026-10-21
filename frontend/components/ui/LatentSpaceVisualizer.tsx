@@ -31,13 +31,13 @@ export const LatentSpaceVisualizer: React.FC<LatentSpaceVisualizerProps> = ({
     const mountEl = mountRef.current;
     mountEl.appendChild(renderer.domElement);
 
-    // 2. Hypersphere shell representation (wireframe sphere)
+    // 2. Hypersphere shell representation
     const sphereGeo = new THREE.SphereGeometry(1.4, 24, 24);
     const sphereMat = new THREE.MeshBasicMaterial({
-      color: 0x8b7cff,
+      color: 0x6366f1,
       wireframe: true,
       transparent: true,
-      opacity: 0.12,
+      opacity: 0.15,
     });
     const sphere = new THREE.Mesh(sphereGeo, sphereMat);
     scene.add(sphere);
@@ -47,8 +47,8 @@ export const LatentSpaceVisualizer: React.FC<LatentSpaceVisualizerProps> = ({
     const posB = new THREE.Vector3(1.1, -0.3, 0.8).normalize().multiplyScalar(1.4);
 
     const pointGeo = new THREE.SphereGeometry(0.06, 16, 16);
-    const pointMatA = new THREE.MeshBasicMaterial({ color: 0xffb88a });
-    const pointMatB = new THREE.MeshBasicMaterial({ color: 0x38e1ff });
+    const pointMatA = new THREE.MeshBasicMaterial({ color: 0xd97706 });
+    const pointMatB = new THREE.MeshBasicMaterial({ color: 0x6366f1 });
 
     const meshA = new THREE.Mesh(pointGeo, pointMatA);
     meshA.position.copy(posA);
@@ -58,11 +58,11 @@ export const LatentSpaceVisualizer: React.FC<LatentSpaceVisualizerProps> = ({
     meshB.position.copy(posB);
     scene.add(meshB);
 
-    // 4. Lerp chord line (straight chord through interior, warm)
+    // 4. Lerp chord line
     const lerpPoints = [posA, posB];
     const lerpGeo = new THREE.BufferGeometry().setFromPoints(lerpPoints);
     const lerpMat = new THREE.LineBasicMaterial({
-      color: 0xffb88a,
+      color: 0xd97706,
       linewidth: 2,
       transparent: true,
       opacity: mode === "lerp" ? 0.95 : 0.4,
@@ -70,12 +70,11 @@ export const LatentSpaceVisualizer: React.FC<LatentSpaceVisualizerProps> = ({
     const lerpLine = new THREE.Line(lerpGeo, lerpMat);
     scene.add(lerpLine);
 
-    // 5. Slerp arc (curved on sphere shell, cyan)
+    // 5. Slerp arc
     const slerpCurvePoints: THREE.Vector3[] = [];
     const count = 32;
     for (let i = 0; i <= count; i++) {
       const t = i / count;
-      // Slerp formula in 3D
       const theta = posA.angleTo(posB);
       const sinTheta = Math.sin(theta);
       const v = new THREE.Vector3()
@@ -85,7 +84,7 @@ export const LatentSpaceVisualizer: React.FC<LatentSpaceVisualizerProps> = ({
     }
     const slerpGeo = new THREE.BufferGeometry().setFromPoints(slerpCurvePoints);
     const slerpMat = new THREE.LineBasicMaterial({
-      color: 0x38e1ff,
+      color: 0x6366f1,
       linewidth: 3,
       transparent: true,
       opacity: mode === "slerp" ? 1.0 : 0.4,
@@ -97,8 +96,8 @@ export const LatentSpaceVisualizer: React.FC<LatentSpaceVisualizerProps> = ({
     let reqId: number;
     const animate = () => {
       reqId = requestAnimationFrame(animate);
-      sphere.rotation.y += 0.005;
-      sphere.rotation.x += 0.002;
+      sphere.rotation.y += 0.004;
+      sphere.rotation.x += 0.0015;
       renderer.render(scene, camera);
     };
     animate();
@@ -114,14 +113,14 @@ export const LatentSpaceVisualizer: React.FC<LatentSpaceVisualizerProps> = ({
 
   return (
     <div className={className}>
-      <div className="relative w-full h-48 rounded-2xl border border-white/[0.08] bg-[#0E1018]/90 overflow-hidden flex items-center justify-center">
+      <div className="relative w-full h-48 rounded-xl border border-border-subtle bg-surface-elevated overflow-hidden flex items-center justify-center">
         <div ref={mountRef} className="w-full h-full" />
-        <div className="absolute top-2 left-3 text-[10px] font-mono text-[#8B8FA3] flex items-center gap-2">
-          <span className="flex items-center gap-1 text-[#38E1FF]">
-            <span className="w-2 h-0.5 bg-[#38E1FF] inline-block" /> Slerp (Hypersphere shell)
+        <div className="absolute top-2 left-3 text-[10px] font-mono text-text-muted flex items-center gap-3 bg-surface/80 px-2 py-1 rounded border border-border-subtle">
+          <span className="flex items-center gap-1 text-accent font-medium">
+            <span className="w-2 h-0.5 bg-accent inline-block" /> Slerp (Manifold shell)
           </span>
-          <span className="flex items-center gap-1 text-[#FFB88A]">
-            <span className="w-2 h-0.5 bg-[#FFB88A] inline-block" /> Lerp (Interior chord)
+          <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-medium">
+            <span className="w-2 h-0.5 bg-amber-500 inline-block" /> Lerp (Interior chord)
           </span>
         </div>
       </div>

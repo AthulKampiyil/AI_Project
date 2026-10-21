@@ -11,10 +11,10 @@ import {
   FlaskConical,
   ChevronLeft,
   ChevronRight,
-  Atom,
   Info,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { BrandLogo } from "@/components/shell/BrandLogo";
 
 const NAV_ITEMS = [
   {
@@ -56,23 +56,23 @@ export const Sidebar: React.FC = () => {
   return (
     <aside
       className={cn(
-        "hidden lg:flex flex-col justify-between border-r border-white/[0.08] bg-[#07080D]/95 backdrop-blur-2xl transition-all duration-300 z-40 h-screen sticky top-0",
+        "hidden lg:flex flex-col justify-between border-r border-border-subtle bg-surface transition-all duration-200 z-40 h-screen sticky top-0",
         collapsed ? "w-[72px]" : "w-[240px]"
       )}
     >
       {/* Top Logo Section */}
       <div>
-        <div className="flex items-center justify-between p-4 border-b border-white/[0.08]">
-          <Link href="/studio" className="flex items-center gap-3 overflow-hidden">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#8B7CFF] to-[#38E1FF] flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(139,124,255,0.4)]">
-              <Atom className="w-5 h-5 text-black animate-spin-slow" />
+        <div className="flex items-center justify-between p-4 border-b border-border-subtle">
+          <Link href="/studio" className="flex items-center gap-3 overflow-hidden group">
+            <div className="w-9 h-9 rounded-xl bg-surface-elevated border border-border-subtle text-accent flex items-center justify-center shrink-0 shadow-xs group-hover:border-border-strong transition-colors">
+              <BrandLogo size={20} />
             </div>
             {!collapsed && (
               <div className="flex flex-col truncate">
-                <span className="font-bold text-sm tracking-tight text-[#EDEEF3] leading-none">
+                <span className="font-semibold text-sm tracking-tight text-text-primary leading-none">
                   Latent Studio
                 </span>
-                <span className="text-[10px] font-mono text-[#8B8FA3] tracking-widest uppercase mt-1">
+                <span className="text-[10px] font-mono text-text-muted tracking-wider uppercase mt-1">
                   DCGAN Face Lab
                 </span>
               </div>
@@ -82,7 +82,7 @@ export const Sidebar: React.FC = () => {
           <button
             type="button"
             onClick={() => setCollapsed(!collapsed)}
-            className="p-1.5 rounded-lg text-[#8B8FA3] hover:text-[#EDEEF3] hover:bg-white/[0.06] transition-colors"
+            className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-hover transition-colors cursor-pointer"
             title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             {collapsed ? (
@@ -94,7 +94,7 @@ export const Sidebar: React.FC = () => {
         </div>
 
         {/* Navigation Routes */}
-        <nav className="p-3 space-y-1.5 mt-2">
+        <nav className="p-3 space-y-1 mt-2">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const isActive = pathname.startsWith(item.path);
@@ -106,31 +106,38 @@ export const Sidebar: React.FC = () => {
                 className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group relative",
                   isActive
-                    ? "bg-[#8B7CFF]/15 text-[#8B7CFF] border border-[#8B7CFF]/30 shadow-[0_0_20px_rgba(139,124,255,0.15)]"
-                    : "text-[#8B8FA3] hover:text-[#EDEEF3] hover:bg-white/[0.04]"
+                    ? "bg-accent-subtle text-accent font-semibold border border-accent/20"
+                    : "text-text-secondary hover:text-text-primary hover:bg-surface-hover"
                 )}
                 title={collapsed ? item.label : undefined}
               >
                 <Icon
                   className={cn(
-                    "w-5 h-5 shrink-0 transition-colors",
+                    "w-4 h-4 shrink-0 transition-colors",
                     isActive
-                      ? "text-[#8B7CFF]"
-                      : "text-[#8B8FA3] group-hover:text-[#EDEEF3]"
+                      ? "text-accent"
+                      : "text-text-muted group-hover:text-text-primary"
                   )}
                 />
                 {!collapsed && (
                   <span className="truncate">{item.label}</span>
                 )}
                 {!collapsed && item.badge && (
-                  <span className="ml-auto text-[9px] font-mono text-[#8B8FA3] bg-white/[0.05] px-1.5 py-0.5 rounded">
+                  <span
+                    className={cn(
+                      "ml-auto text-[10px] font-mono px-1.5 py-0.5 rounded border",
+                      isActive
+                        ? "text-accent border-accent/20 bg-accent/5"
+                        : "text-text-muted border-border-subtle bg-surface-elevated"
+                    )}
+                  >
                     {item.badge}
                   </span>
                 )}
 
-                {/* Left Active Glow Indicator */}
+                {/* Left Active Indicator Bar */}
                 {isActive && (
-                  <div className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-[#8B7CFF] shadow-[0_0_8px_#8B7CFF]" />
+                  <div className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-accent" />
                 )}
               </Link>
             );
@@ -139,20 +146,20 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* Footer Specimen Indicator */}
-      <div className="p-4 border-t border-white/[0.08]">
+      <div className="p-4 border-t border-border-subtle">
         {!collapsed ? (
-          <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-1">
-            <div className="flex items-center justify-between text-[11px] font-mono text-[#8B8FA3]">
+          <div className="p-3 rounded-xl bg-surface-elevated border border-border-subtle space-y-1">
+            <div className="flex items-center justify-between text-[11px] font-mono text-text-secondary font-medium">
               <span>Radford et al. 2015</span>
-              <Info className="w-3 h-3 text-[#8B7CFF]" />
+              <Info className="w-3.5 h-3.5 text-accent" />
             </div>
-            <div className="text-[10px] text-[#8B8FA3]/80 font-mono">
+            <div className="text-[10px] text-text-muted font-mono">
               CelebA · z ∈ ℝ¹⁰⁰
             </div>
           </div>
         ) : (
-          <div className="flex justify-center text-[#8B8FA3]" title="CelebA DCGAN 100D">
-            <Info className="w-4 h-4 text-[#8B7CFF]" />
+          <div className="flex justify-center text-text-muted" title="CelebA DCGAN 100D">
+            <Info className="w-4 h-4 text-accent" />
           </div>
         )}
       </div>

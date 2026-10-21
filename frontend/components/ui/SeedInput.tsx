@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Dices, Sparkles, ChevronDown, Check } from "lucide-react";
+import { Dices, Hash, ChevronDown, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { HERO_PRESETS } from "@/lib/mockData";
 
@@ -33,12 +33,12 @@ export const SeedInput: React.FC<SeedInputProps> = ({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between text-xs">
-        <label className="text-[#8B8FA3] font-medium flex items-center gap-1.5">
-          <Sparkles className="w-3.5 h-3.5 text-[#8B7CFF]" />
+        <label className="text-text-secondary font-medium flex items-center gap-1.5">
+          <Hash className="w-3.5 h-3.5 text-text-muted" />
           {label}
         </label>
         {currentPreset && (
-          <span className="text-[11px] font-mono text-[#38E1FF] bg-[#38E1FF]/10 px-2 py-0.5 rounded border border-[#38E1FF]/20">
+          <span className="text-[11px] font-mono text-accent bg-accent-subtle px-2 py-0.5 rounded border border-accent/20">
             {currentPreset.name}
           </span>
         )}
@@ -51,11 +51,11 @@ export const SeedInput: React.FC<SeedInputProps> = ({
             type="button"
             disabled={disabled}
             onClick={() => setIsPresetOpen(!isPresetOpen)}
-            className="flex items-center gap-1.5 px-2.5 py-2 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:border-[#8B7CFF]/40 text-xs font-mono text-[#EDEEF3] transition-all hover:bg-white/[0.07]"
+            className="flex items-center gap-1.5 px-2.5 py-2 rounded-xl bg-surface-elevated border border-border-subtle hover:border-border-strong text-xs font-mono text-text-primary transition-colors cursor-pointer"
             title="Choose Curated High-Clarity Preset"
           >
             <span>Preset</span>
-            <ChevronDown className="w-3 h-3 text-[#8B8FA3]" />
+            <ChevronDown className="w-3 h-3 text-text-muted" />
           </button>
 
           <AnimatePresence>
@@ -66,13 +66,13 @@ export const SeedInput: React.FC<SeedInputProps> = ({
                   onClick={() => setIsPresetOpen(false)}
                 />
                 <motion.div
-                  initial={{ opacity: 0, y: 6, scale: 0.96 }}
+                  initial={{ opacity: 0, y: 4, scale: 0.98 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 4, scale: 0.96 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute left-0 top-full mt-2 w-64 p-2 rounded-2xl bg-[#0E1018] border border-white/10 shadow-2xl backdrop-blur-2xl z-50 space-y-1"
+                  exit={{ opacity: 0, y: 4, scale: 0.98 }}
+                  transition={{ duration: 0.12 }}
+                  className="absolute left-0 top-full mt-1.5 w-64 p-1.5 rounded-xl bg-surface border border-border-subtle shadow-lg z-50 space-y-0.5"
                 >
-                  <div className="px-2 py-1 text-[10px] font-mono uppercase tracking-wider text-[#8B8FA3]">
+                  <div className="px-2 py-1 text-[10px] font-mono uppercase tracking-wider text-text-muted">
                     Curated CelebA Basins
                   </div>
                   {HERO_PRESETS.map((preset) => {
@@ -85,25 +85,25 @@ export const SeedInput: React.FC<SeedInputProps> = ({
                           onChange(preset.seed);
                           setIsPresetOpen(false);
                         }}
-                        className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left text-xs transition-all ${
+                        className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left text-xs transition-colors cursor-pointer ${
                           isSelected
-                            ? "bg-[#8B7CFF]/15 border border-[#8B7CFF]/40 text-[#EDEEF3]"
-                            : "hover:bg-white/[0.05] text-[#8B8FA3] hover:text-[#EDEEF3]"
+                            ? "bg-accent-subtle border border-accent/30 text-text-primary font-medium"
+                            : "hover:bg-surface-elevated text-text-secondary hover:text-text-primary"
                         }`}
                       >
                         <div>
-                          <div className="font-medium text-[#EDEEF3] flex items-center gap-1.5">
+                          <div className="font-medium text-text-primary flex items-center gap-1.5">
                             <span>{preset.name}</span>
-                            <span className="font-mono text-[10px] text-[#8B8FA3]">
+                            <span className="font-mono text-[10px] text-text-muted">
                               #{preset.seed}
                             </span>
                           </div>
-                          <div className="text-[10px] text-[#8B8FA3]/80">
+                          <div className="text-[10px] text-text-muted">
                             {preset.desc}
                           </div>
                         </div>
                         {isSelected && (
-                          <Check className="w-3.5 h-3.5 text-[#8B7CFF]" />
+                          <Check className="w-3.5 h-3.5 text-accent" />
                         )}
                       </button>
                     );
@@ -126,7 +126,7 @@ export const SeedInput: React.FC<SeedInputProps> = ({
               const val = parseInt(e.target.value, 10);
               onChange(isNaN(val) ? 0 : Math.max(0, Math.min(99999, val)));
             }}
-            className="w-full px-3 py-2 rounded-xl bg-white/[0.04] border border-white/[0.08] focus:border-[#8B7CFF] focus:bg-white/[0.06] text-sm font-mono text-[#EDEEF3] transition-all outline-none"
+            className="w-full px-3 py-2 rounded-xl bg-surface-elevated border border-border-subtle focus:border-accent text-sm font-mono text-text-primary transition-colors outline-none"
           />
         </div>
 
@@ -136,12 +136,12 @@ export const SeedInput: React.FC<SeedInputProps> = ({
           disabled={disabled}
           onClick={handleRandomize}
           animate={{ rotate: isRotating ? 360 : 0 }}
-          transition={{ duration: 0.5, ease: "easeInOut" }}
-          whileTap={{ scale: 0.92 }}
-          className="p-2.5 rounded-xl bg-[#8B7CFF]/15 hover:bg-[#8B7CFF]/25 border border-[#8B7CFF]/30 text-[#8B7CFF] transition-all flex items-center justify-center cursor-pointer disabled:opacity-50"
+          transition={{ duration: 0.4, ease: "easeInOut" }}
+          whileTap={{ scale: 0.94 }}
+          className="p-2.5 rounded-xl bg-surface-elevated hover:bg-surface-hover border border-border-subtle hover:border-border-strong text-text-primary transition-colors flex items-center justify-center cursor-pointer disabled:opacity-50"
           title="Randomize Gaussian Latent Seed"
         >
-          <Dices className="w-4 h-4" />
+          <Dices className="w-4 h-4 text-text-muted hover:text-text-primary" />
         </motion.button>
       </div>
     </div>

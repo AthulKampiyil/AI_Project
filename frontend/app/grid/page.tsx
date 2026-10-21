@@ -5,16 +5,14 @@ import { useRouter } from "next/navigation";
 import { useGridStore } from "@/store/useGridStore";
 import { fetchGrid } from "@/lib/api";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { GlassCard } from "@/components/ui/GlassCard";
+import { Card } from "@/components/ui/GlassCard";
 import { FaceStage } from "@/components/ui/FaceStage";
 import {
   Grid as GridIcon,
-  Sparkles,
   Lock,
   Unlock,
   Download,
   ExternalLink,
-  Layers,
   User,
 } from "lucide-react";
 import { generateMockFaceSvg } from "@/lib/mockData";
@@ -80,17 +78,17 @@ export default function GridPage() {
           type="button"
           onClick={handleDownload}
           disabled={!image}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs font-mono text-[#EDEEF3] transition-colors disabled:opacity-40"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-elevated hover:bg-surface-hover border border-border-subtle text-xs font-mono text-text-primary transition-colors disabled:opacity-40 cursor-pointer shadow-xs"
         >
-          <Download className="w-3.5 h-3.5 text-[#38E1FF]" />
+          <Download className="w-3.5 h-3.5 text-text-muted" />
           <span>Save PNG</span>
         </button>
       </PageHeader>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left: Interactive Grid / Single Portrait Display */}
         <div className="lg:col-span-8 space-y-4">
-          <GlassCard className="p-6 flex flex-col items-center justify-center">
+          <Card className="p-6 flex flex-col items-center justify-center">
             {gridCount === 1 ? (
               <div className="max-w-sm w-full space-y-3">
                 <FaceStage
@@ -100,14 +98,14 @@ export default function GridPage() {
                   seed={seeds[0]}
                   onOpenStudio={handleTileClick}
                 />
-                <div className="text-center text-xs font-mono text-[#8B8FA3]">
+                <div className="text-center text-xs font-mono text-text-muted">
                   Seed: #{seeds[0] ?? 42} · Single Radford Latent Sample
                 </div>
               </div>
             ) : (
               <div className="w-full max-w-xl space-y-3">
                 {/* 4x4 Interactive Mosaic */}
-                <div className="grid grid-cols-4 gap-2.5 p-2 rounded-2xl bg-black/40 border border-white/10">
+                <div className="grid grid-cols-4 gap-2.5 p-2 rounded-xl bg-surface-elevated border border-border-subtle">
                   {Array.from({ length: 16 }, (_, idx) => {
                     const currentSeed = seeds[idx] ?? (42 + idx * 37);
                     const tileImg = generateMockFaceSvg(currentSeed, {}, 128);
@@ -119,10 +117,10 @@ export default function GridPage() {
                         onMouseEnter={() => setHoveredTileIndex(idx)}
                         onMouseLeave={() => setHoveredTileIndex(null)}
                         onClick={() => handleTileClick(currentSeed)}
-                        className={`group relative aspect-square rounded-xl overflow-hidden border cursor-pointer transition-all duration-150 ${
+                        className={`group relative aspect-square rounded-lg overflow-hidden border cursor-pointer transition-all duration-100 ${
                           isHovered
-                            ? "border-[#8B7CFF] scale-105 z-10 shadow-[0_0_15px_rgba(139,124,255,0.4)]"
-                            : "border-white/10 hover:border-white/30"
+                            ? "border-accent scale-105 z-10 shadow-md ring-2 ring-accent/20"
+                            : "border-border-subtle hover:border-border-strong bg-surface"
                         }`}
                         title={`Click to open Seed #${currentSeed} in Facial Math Studio`}
                       >
@@ -131,13 +129,13 @@ export default function GridPage() {
                           alt={`Seed ${currentSeed}`}
                           className="w-full h-full object-cover"
                         />
-                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center text-center p-1 transition-opacity">
-                          <ExternalLink className="w-4 h-4 text-[#8B7CFF] mb-1" />
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center text-center p-1 transition-opacity">
+                          <ExternalLink className="w-3.5 h-3.5 text-white mb-1" />
                           <span className="text-[10px] font-mono text-white font-semibold">
                             #{currentSeed}
                           </span>
-                          <span className="text-[8px] text-[#8B8FA3]">
-                            Open Studio
+                          <span className="text-[9px] text-gray-300 font-mono">
+                            Sculpt
                           </span>
                         </div>
                       </div>
@@ -145,33 +143,33 @@ export default function GridPage() {
                   })}
                 </div>
 
-                <div className="flex items-center justify-between text-xs font-mono text-[#8B8FA3] px-2">
+                <div className="flex items-center justify-between text-xs font-mono text-text-muted px-2">
                   <span>Hover to reveal seed · Click to sculpt</span>
-                  <span className="text-[#8B7CFF]">4×4 Matrix (16 Faces)</span>
+                  <span className="text-accent font-medium">4×4 Matrix (16 Faces)</span>
                 </div>
               </div>
             )}
-          </GlassCard>
+          </Card>
         </div>
 
         {/* Right: Generator Controls */}
         <div className="lg:col-span-4 space-y-6">
-          <GlassCard className="p-5 space-y-5">
-            <div className="flex items-center gap-2 border-b border-white/[0.08] pb-3 text-sm font-semibold text-[#EDEEF3]">
-              <GridIcon className="w-4 h-4 text-[#8B7CFF]" />
+          <Card className="p-5 space-y-5">
+            <div className="flex items-center gap-2 border-b border-border-subtle pb-3 text-sm font-semibold text-text-primary">
+              <GridIcon className="w-4 h-4 text-accent" />
               <span>Generation Modes</span>
             </div>
 
             {/* Buttons for 1 and 16 faces */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2.5">
               <button
                 type="button"
                 onClick={() => handleGenerate(1)}
                 disabled={isGenerating}
-                className={`py-3 px-3 rounded-xl border font-semibold text-xs transition-all flex flex-col items-center justify-center gap-1.5 ${
+                className={`py-2.5 px-3 rounded-xl border font-medium text-xs transition-colors flex flex-col items-center justify-center gap-1.5 cursor-pointer ${
                   gridCount === 1
-                    ? "bg-[#8B7CFF]/15 border-[#8B7CFF]/50 text-[#8B7CFF] shadow-sm"
-                    : "bg-white/[0.03] border-white/10 text-[#8B8FA3] hover:text-[#EDEEF3]"
+                    ? "bg-accent-subtle border-accent/40 text-accent font-semibold shadow-xs"
+                    : "bg-surface-elevated border-border-subtle text-text-secondary hover:text-text-primary hover:bg-surface-hover"
                 }`}
               >
                 <User className="w-4 h-4" />
@@ -182,10 +180,10 @@ export default function GridPage() {
                 type="button"
                 onClick={() => handleGenerate(16)}
                 disabled={isGenerating}
-                className={`py-3 px-3 rounded-xl border font-semibold text-xs transition-all flex flex-col items-center justify-center gap-1.5 ${
+                className={`py-2.5 px-3 rounded-xl border font-medium text-xs transition-colors flex flex-col items-center justify-center gap-1.5 cursor-pointer ${
                   gridCount === 16
-                    ? "bg-[#8B7CFF]/15 border-[#8B7CFF]/50 text-[#8B7CFF] shadow-sm"
-                    : "bg-white/[0.03] border-white/10 text-[#8B8FA3] hover:text-[#EDEEF3]"
+                    ? "bg-accent-subtle border-accent/40 text-accent font-semibold shadow-xs"
+                    : "bg-surface-elevated border-border-subtle text-text-secondary hover:text-text-primary hover:bg-surface-hover"
                 }`}
               >
                 <GridIcon className="w-4 h-4" />
@@ -194,23 +192,23 @@ export default function GridPage() {
             </div>
 
             {/* Seed Lock Toggle */}
-            <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-2">
+            <div className="p-3 rounded-xl bg-surface-elevated border border-border-subtle space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-[#EDEEF3] font-medium flex items-center gap-1.5">
+                <span className="text-xs text-text-primary font-medium flex items-center gap-1.5">
                   {seedLock ? (
-                    <Lock className="w-3.5 h-3.5 text-amber-400" />
+                    <Lock className="w-3.5 h-3.5 text-amber-500" />
                   ) : (
-                    <Unlock className="w-3.5 h-3.5 text-[#8B8FA3]" />
+                    <Unlock className="w-3.5 h-3.5 text-text-muted" />
                   )}
                   <span>Seed Anchor Lock</span>
                 </span>
                 <button
                   type="button"
                   onClick={() => setSeedLock(!seedLock)}
-                  className={`text-xs font-mono px-2 py-0.5 rounded transition-all ${
+                  className={`text-xs font-mono px-2 py-0.5 rounded transition-colors cursor-pointer ${
                     seedLock
-                      ? "bg-amber-400/15 text-amber-300 border border-amber-400/30"
-                      : "bg-white/[0.04] text-[#8B8FA3]"
+                      ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-semibold"
+                      : "bg-surface border border-border-subtle text-text-muted hover:text-text-primary"
                   }`}
                 >
                   {seedLock ? "LOCKED" : "UNLOCKED"}
@@ -223,7 +221,7 @@ export default function GridPage() {
                     type="number"
                     value={lockedSeed}
                     onChange={(e) => setLockedSeed(parseInt(e.target.value, 10) || 0)}
-                    className="w-full px-2.5 py-1.5 rounded-lg bg-black/40 border border-white/10 text-xs font-mono text-[#EDEEF3]"
+                    className="w-full px-2.5 py-1.5 rounded-lg bg-surface border border-border-subtle text-xs font-mono text-text-primary outline-none focus:border-accent"
                     placeholder="Locked Seed"
                   />
                 </div>
@@ -235,16 +233,16 @@ export default function GridPage() {
               type="button"
               onClick={() => handleGenerate(gridCount)}
               disabled={isGenerating}
-              className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#8B7CFF] to-[#9B8EFF] hover:opacity-95 text-black font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_20px_rgba(139,124,255,0.3)] disabled:opacity-50"
+              className="w-full py-2.5 px-4 rounded-xl bg-accent hover:bg-accent-hover text-white font-medium text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-xs disabled:opacity-50"
             >
-              <Sparkles className="w-4 h-4 fill-black" />
+              <GridIcon className="w-3.5 h-3.5" />
               <span>
                 {isGenerating
                   ? "Sampling Gaussian Sphere..."
                   : `Generate Random ${gridCount === 1 ? "Face" : "4×4 Mosaic"}`}
               </span>
             </button>
-          </GlassCard>
+          </Card>
         </div>
       </div>
     </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Sparkles, Info } from "lucide-react";
+import { Film } from "lucide-react";
 
 interface FilmstripProps {
   lerpStrip: string[];
@@ -16,10 +16,10 @@ export const Filmstrip: React.FC<FilmstripProps> = ({
 
   if (lerpStrip.length === 0 || slerpStrip.length === 0) {
     return (
-      <div className="w-full p-8 rounded-2xl border border-white/[0.08] bg-[#0E1018]/60 text-center text-[#8B8FA3] flex flex-col items-center justify-center">
-        <Sparkles className="w-7 h-7 text-[#FFB88A]/50 mb-2" />
+      <div className="w-full p-8 rounded-xl border border-border-subtle bg-surface-elevated text-center text-text-muted flex flex-col items-center justify-center">
+        <Film className="w-6 h-6 text-text-muted mb-2 opacity-50" />
         <p className="text-xs font-mono">
-          Click &quot;Compare Slerp vs Lerp Strips&quot; to reveal the side-by-side trajectory filmstrip.
+          Click &quot;Compare Slerp vs Lerp Strips&quot; to reveal the trajectory filmstrip.
         </p>
       </div>
     );
@@ -28,35 +28,35 @@ export const Filmstrip: React.FC<FilmstripProps> = ({
   const steps = Math.min(lerpStrip.length, slerpStrip.length);
 
   return (
-    <div className="w-full rounded-2xl border border-white/[0.08] bg-[#0E1018]/80 p-4 space-y-4 shadow-xl">
+    <div className="w-full rounded-xl border border-border-subtle bg-surface p-4 space-y-4 shadow-xs">
       <div className="flex items-center justify-between">
         <div>
-          <h4 className="text-sm font-semibold text-[#EDEEF3] flex items-center gap-2">
+          <h4 className="text-sm font-semibold text-text-primary flex items-center gap-2">
             <span>Geodesic Comparison Filmstrip</span>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/[0.06] text-[#8B8FA3]">
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-surface-elevated border border-border-subtle text-text-muted">
               {steps} STEPS
             </span>
           </h4>
-          <p className="text-xs text-[#8B8FA3] mt-0.5">
-            Hover any column to inspect how Lerp cuts into the hollow hypersphere interior (loss of definition) while Slerp stays on the high-probability shell.
+          <p className="text-xs text-text-muted mt-0.5">
+            Hover any column to inspect how Lerp cuts into the hollow hypersphere interior while Slerp stays on the high-probability manifold shell.
           </p>
         </div>
       </div>
 
       <div className="overflow-x-auto pb-2">
         <div className="flex flex-col gap-3 min-w-max">
-          {/* Lerp Row (Warm) */}
+          {/* Lerp Row */}
           <div className="flex items-center gap-2">
             <div className="w-24 shrink-0 flex flex-col">
-              <span className="text-xs font-mono font-semibold text-[#FFB88A]">
+              <span className="text-xs font-mono font-semibold text-amber-600 dark:text-amber-400">
                 LERP
               </span>
-              <span className="text-[10px] text-[#8B8FA3]">
-                Euclidean line
+              <span className="text-[10px] text-text-muted font-mono">
+                Linear chord
               </span>
             </div>
 
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2">
               {lerpStrip.slice(0, steps).map((src, idx) => {
                 const t = (idx / (steps - 1)).toFixed(2);
                 const isHovered = hoveredIndex === idx;
@@ -67,10 +67,10 @@ export const Filmstrip: React.FC<FilmstripProps> = ({
                     key={`lerp-${idx}`}
                     onMouseEnter={() => setHoveredIndex(idx)}
                     onMouseLeave={() => setHoveredIndex(null)}
-                    className={`relative w-20 h-20 rounded-xl overflow-hidden border transition-all duration-150 cursor-pointer ${
+                    className={`relative w-18 h-18 rounded-lg overflow-hidden border transition-all duration-100 cursor-pointer ${
                       isHovered
-                        ? "border-[#FFB88A] ring-2 ring-[#FFB88A]/30 scale-105 z-10"
-                        : "border-white/10 hover:border-white/20"
+                        ? "border-amber-500 ring-2 ring-amber-500/20 scale-105 z-10"
+                        : "border-border-subtle hover:border-border-strong bg-surface-elevated"
                     }`}
                   >
                     <img
@@ -78,11 +78,11 @@ export const Filmstrip: React.FC<FilmstripProps> = ({
                       alt={`Lerp t=${t}`}
                       className="w-full h-full object-contain"
                     />
-                    <div className="absolute bottom-1 right-1 px-1 rounded bg-black/70 text-[9px] font-mono text-[#FFB88A]">
+                    <div className="absolute bottom-1 right-1 px-1 rounded bg-black/75 text-[9px] font-mono text-white">
                       t={t}
                     </div>
                     {isMidpoint && (
-                      <div className="absolute top-1 left-1 px-1 rounded bg-amber-500/80 text-[8px] font-mono text-black font-bold">
+                      <div className="absolute top-1 left-1 px-1 rounded bg-amber-500 text-[8px] font-mono text-black font-bold">
                         Hollow
                       </div>
                     )}
@@ -92,18 +92,18 @@ export const Filmstrip: React.FC<FilmstripProps> = ({
             </div>
           </div>
 
-          {/* Slerp Row (Cyan) */}
+          {/* Slerp Row */}
           <div className="flex items-center gap-2">
             <div className="w-24 shrink-0 flex flex-col">
-              <span className="text-xs font-mono font-semibold text-[#38E1FF]">
+              <span className="text-xs font-mono font-semibold text-accent">
                 SLERP
               </span>
-              <span className="text-[10px] text-[#8B8FA3]">
+              <span className="text-[10px] text-text-muted font-mono">
                 Spherical arc
               </span>
             </div>
 
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2">
               {slerpStrip.slice(0, steps).map((src, idx) => {
                 const t = (idx / (steps - 1)).toFixed(2);
                 const isHovered = hoveredIndex === idx;
@@ -113,10 +113,10 @@ export const Filmstrip: React.FC<FilmstripProps> = ({
                     key={`slerp-${idx}`}
                     onMouseEnter={() => setHoveredIndex(idx)}
                     onMouseLeave={() => setHoveredIndex(null)}
-                    className={`relative w-20 h-20 rounded-xl overflow-hidden border transition-all duration-150 cursor-pointer ${
+                    className={`relative w-18 h-18 rounded-lg overflow-hidden border transition-all duration-100 cursor-pointer ${
                       isHovered
-                        ? "border-[#38E1FF] ring-2 ring-[#38E1FF]/30 scale-105 z-10"
-                        : "border-white/10 hover:border-white/20"
+                        ? "border-accent ring-2 ring-accent/20 scale-105 z-10"
+                        : "border-border-subtle hover:border-border-strong bg-surface-elevated"
                     }`}
                   >
                     <img
@@ -124,7 +124,7 @@ export const Filmstrip: React.FC<FilmstripProps> = ({
                       alt={`Slerp t=${t}`}
                       className="w-full h-full object-contain"
                     />
-                    <div className="absolute bottom-1 right-1 px-1 rounded bg-black/70 text-[9px] font-mono text-[#38E1FF]">
+                    <div className="absolute bottom-1 right-1 px-1 rounded bg-black/75 text-[9px] font-mono text-white">
                       t={t}
                     </div>
                   </div>

@@ -4,7 +4,7 @@ import React from "react";
 import { useMorphStore } from "@/store/useMorphStore";
 import { morphFaces, fetchStrips } from "@/lib/api";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { GlassCard } from "@/components/ui/GlassCard";
+import { Card } from "@/components/ui/GlassCard";
 import { SeedInput } from "@/components/ui/SeedInput";
 import { MorphPlayer } from "@/components/ui/MorphPlayer";
 import { Filmstrip } from "@/components/ui/Filmstrip";
@@ -12,10 +12,7 @@ import { LatentSpaceVisualizer } from "@/components/ui/LatentSpaceVisualizer";
 import { Tooltip } from "@/components/ui/Tooltip";
 import {
   Film,
-  Sparkles,
   Layers,
-  Compass,
-  ArrowRight,
   Orbit,
 } from "lucide-react";
 
@@ -72,10 +69,10 @@ export default function MorphPage() {
       />
 
       {/* Main Grid: Player Stage & Filmstrip (left) + Controls & 3D (right) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left: Stage with Morph Player & Filmstrip */}
         <div className="lg:col-span-8 space-y-6">
-          <GlassCard className="p-6">
+          <Card className="p-6">
             <div className="flex flex-col items-center">
               <MorphPlayer
                 frames={frames}
@@ -84,7 +81,7 @@ export default function MorphPage() {
                 className="w-full max-w-md"
               />
             </div>
-          </GlassCard>
+          </Card>
 
           {/* Filmstrip Dual Trajectory Comparison */}
           <Filmstrip lerpStrip={lerpStrip} slerpStrip={slerpStrip} />
@@ -92,9 +89,9 @@ export default function MorphPage() {
 
         {/* Right: Controls & Hypersphere Trajectory Visualizer */}
         <div className="lg:col-span-4 space-y-6">
-          <GlassCard className="p-5 space-y-5">
-            <div className="flex items-center gap-2 border-b border-white/[0.08] pb-3 text-sm font-semibold text-[#EDEEF3]">
-              <Film className="w-4 h-4 text-[#38E1FF]" />
+          <Card className="p-5 space-y-5">
+            <div className="flex items-center gap-2 border-b border-border-subtle pb-3 text-sm font-semibold text-text-primary">
+              <Film className="w-4 h-4 text-accent" />
               <span>Interpolation Parameters</span>
             </div>
 
@@ -117,21 +114,21 @@ export default function MorphPage() {
             {/* Trajectory Segmented Control */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-[#8B8FA3] font-medium">Trajectory Mode</span>
+                <span className="text-text-muted font-medium">Trajectory Mode</span>
                 <Tooltip
                   term="Slerp vs Lerp"
                   content="Slerp (Spherical Linear) maintains constant norm along the hypersphere shell. Lerp (Linear) cuts across chord distance through the center of the sphere, causing intermediate blurriness."
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-2 bg-[#0E1018] p-1 rounded-xl border border-white/[0.08]">
+              <div className="grid grid-cols-2 gap-1.5 bg-surface-elevated p-1 rounded-xl border border-border-subtle">
                 <button
                   type="button"
                   onClick={() => setMode("slerp")}
-                  className={`py-2 px-3 rounded-lg text-xs font-semibold font-mono transition-all ${
+                  className={`py-1.5 px-3 rounded-lg text-xs font-semibold font-mono transition-colors cursor-pointer ${
                     mode === "slerp"
-                      ? "bg-[#38E1FF]/20 text-[#38E1FF] border border-[#38E1FF]/40 shadow-sm"
-                      : "text-[#8B8FA3] hover:text-[#EDEEF3]"
+                      ? "bg-surface text-accent font-semibold shadow-xs border border-border-subtle"
+                      : "text-text-muted hover:text-text-primary"
                   }`}
                 >
                   Slerp (Arc)
@@ -139,10 +136,10 @@ export default function MorphPage() {
                 <button
                   type="button"
                   onClick={() => setMode("lerp")}
-                  className={`py-2 px-3 rounded-lg text-xs font-semibold font-mono transition-all ${
+                  className={`py-1.5 px-3 rounded-lg text-xs font-semibold font-mono transition-colors cursor-pointer ${
                     mode === "lerp"
-                      ? "bg-[#FFB88A]/20 text-[#FFB88A] border border-[#FFB88A]/40 shadow-sm"
-                      : "text-[#8B8FA3] hover:text-[#EDEEF3]"
+                      ? "bg-surface text-amber-600 dark:text-amber-400 font-semibold shadow-xs border border-border-subtle"
+                      : "text-text-muted hover:text-text-primary"
                   }`}
                 >
                   Lerp (Line)
@@ -153,8 +150,8 @@ export default function MorphPage() {
             {/* Smoothness Steps Slider */}
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs">
-                <span className="text-[#8B8FA3]">Smoothness Steps</span>
-                <span className="font-mono text-[#EDEEF3]">{steps} frames</span>
+                <span className="text-text-muted">Smoothness Steps</span>
+                <span className="font-mono text-text-primary">{steps} frames</span>
               </div>
               <input
                 type="range"
@@ -163,10 +160,10 @@ export default function MorphPage() {
                 step={5}
                 value={steps}
                 onChange={(e) => setSteps(parseInt(e.target.value, 10))}
-                className="w-full accent-[#38E1FF] cursor-pointer"
+                className="w-full accent-[var(--accent)] cursor-pointer"
               />
-              <div className="flex justify-between text-[10px] font-mono text-[#8B8FA3]">
-                <span>15 (Quick)</span>
+              <div className="flex justify-between text-[10px] font-mono text-text-muted">
+                <span>15 (Fast)</span>
                 <span>35 (Ultra Smooth)</span>
               </div>
             </div>
@@ -174,8 +171,8 @@ export default function MorphPage() {
             {/* FPS Speed Slider */}
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs">
-                <span className="text-[#8B8FA3]">Playback Speed</span>
-                <span className="font-mono text-[#EDEEF3]">{fps} FPS</span>
+                <span className="text-text-muted">Playback Speed</span>
+                <span className="font-mono text-text-primary">{fps} FPS</span>
               </div>
               <input
                 type="range"
@@ -184,9 +181,9 @@ export default function MorphPage() {
                 step={2}
                 value={fps}
                 onChange={(e) => setFps(parseInt(e.target.value, 10))}
-                className="w-full accent-[#38E1FF] cursor-pointer"
+                className="w-full accent-[var(--accent)] cursor-pointer"
               />
-              <div className="flex justify-between text-[10px] font-mono text-[#8B8FA3]">
+              <div className="flex justify-between text-[10px] font-mono text-text-muted">
                 <span>10 FPS</span>
                 <span>24 FPS</span>
               </div>
@@ -198,9 +195,9 @@ export default function MorphPage() {
                 type="button"
                 onClick={handleGenerateReel}
                 disabled={isGenerating}
-                className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#38E1FF] to-[#8B7CFF] hover:opacity-95 text-black font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_20px_rgba(56,225,255,0.3)] disabled:opacity-50"
+                className="w-full py-2 px-4 rounded-xl bg-accent hover:bg-accent-hover text-white font-medium text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-xs disabled:opacity-50"
               >
-                <Sparkles className="w-4 h-4 fill-black" />
+                <Film className="w-3.5 h-3.5" />
                 <span>
                   {isGenerating ? "Synthesizing Reel..." : "Generate Morphing Reel"}
                 </span>
@@ -210,27 +207,27 @@ export default function MorphPage() {
                 type="button"
                 onClick={handleCompareStrips}
                 disabled={isStripsLoading}
-                className="w-full py-2.5 px-4 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs text-[#EDEEF3] transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full py-2 px-4 rounded-xl bg-surface-elevated hover:bg-surface-hover border border-border-subtle text-xs text-text-primary transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
-                <Layers className="w-4 h-4 text-[#FFB88A]" />
+                <Layers className="w-3.5 h-3.5 text-text-muted" />
                 <span>
                   {isStripsLoading ? "Rendering Strips..." : "Compare Slerp vs. Lerp Strips"}
                 </span>
               </button>
             </div>
-          </GlassCard>
+          </Card>
 
-          {/* 3D Hypersphere Trajectory Geometric Visualizer */}
-          <GlassCard className="p-5 space-y-3">
-            <div className="flex items-center gap-2 text-xs font-semibold text-[#EDEEF3]">
-              <Orbit className="w-4 h-4 text-[#38E1FF]" />
+          {/* 3D Hypersphere Shell Geometry */}
+          <Card className="p-5 space-y-3">
+            <div className="flex items-center gap-2 text-xs font-semibold text-text-primary">
+              <Orbit className="w-4 h-4 text-accent" />
               <span>3D Hypersphere Shell Geometry</span>
             </div>
             <LatentSpaceVisualizer mode={mode} />
-            <p className="text-[11px] text-[#8B8FA3] font-mono leading-relaxed">
+            <p className="text-[11px] text-text-muted font-mono leading-relaxed">
               In 100 dimensions, nearly 99.9% of Gaussian probability mass is concentrated in a thin shell around radius r ≈ √100 = 10.
             </p>
-          </GlassCard>
+          </Card>
         </div>
       </div>
     </div>

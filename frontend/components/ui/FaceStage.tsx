@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Download, Copy, ExternalLink, Check, Sparkles } from "lucide-react";
+import { Download, Copy, ExternalLink, Check, SlidersHorizontal } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -49,27 +49,26 @@ export const FaceStage: React.FC<FaceStageProps> = ({
   return (
     <div
       className={cn(
-        "relative group rounded-3xl border border-white/[0.08] bg-[#0E1018]/90 overflow-hidden shadow-2xl transition-all duration-300",
-        "before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_center,rgba(255,184,138,0.1)_0%,transparent_70%)] before:pointer-events-none before:z-0",
+        "relative group rounded-2xl border border-border-subtle bg-surface-elevated overflow-hidden shadow-xs transition-all duration-150",
         className
       )}
     >
       {/* Corner Label Badge */}
-      <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-[11px] font-mono tracking-wider font-semibold text-[#EDEEF3]">
-        <span className="w-1.5 h-1.5 rounded-full bg-[#FFB88A]" />
+      <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-surface border border-border-subtle text-[10px] font-mono tracking-wider font-semibold text-text-primary shadow-xs">
+        <span className="w-1.5 h-1.5 rounded-full bg-accent" />
         {label}
       </div>
 
       {/* Resolution Indicator Badge */}
-      <div className="absolute top-3 right-3 z-20 px-2 py-0.5 rounded-md bg-black/50 backdrop-blur-md border border-white/10 text-[10px] font-mono text-[#8B8FA3]">
+      <div className="absolute top-3 right-3 z-20 px-2 py-0.5 rounded-md bg-surface border border-border-subtle text-[10px] font-mono text-text-muted shadow-xs">
         {pixelated ? "64×64 RAW" : "384×384 BICUBIC"}
       </div>
 
       {/* Main Image Frame with Cross-fade & Skeleton Shimmer */}
       <div className="relative w-full aspect-square flex items-center justify-center p-3 z-10">
         {loading && (
-          <div className="absolute inset-3 rounded-2xl bg-white/[0.03] overflow-hidden z-20">
-            <div className="w-full h-full animate-pulse bg-gradient-to-r from-transparent via-white/[0.06] to-transparent" />
+          <div className="absolute inset-3 rounded-xl bg-surface-hover overflow-hidden z-20">
+            <div className="w-full h-full animate-pulse bg-gradient-to-r from-transparent via-surface-elevated to-transparent" />
           </div>
         )}
 
@@ -79,18 +78,18 @@ export const FaceStage: React.FC<FaceStageProps> = ({
               key={src}
               src={src}
               alt={label}
-              initial={{ opacity: 0.6 }}
+              initial={{ opacity: 0.8 }}
               animate={{ opacity: 1 }}
-              exit={{ opacity: 0.7 }}
-              transition={{ duration: 0.15 }}
+              exit={{ opacity: 0.8 }}
+              transition={{ duration: 0.12 }}
               className={cn(
-                "w-full h-full object-contain rounded-2xl shadow-inner transition-all",
+                "w-full h-full object-contain rounded-xl transition-all",
                 pixelated && "pixelated"
               )}
             />
           ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center text-center p-6 text-[#8B8FA3] border border-dashed border-white/10 rounded-2xl">
-              <Sparkles className="w-8 h-8 text-[#8B7CFF]/50 mb-2 animate-bounce" />
+            <div className="w-full h-full flex flex-col items-center justify-center text-center p-6 text-text-muted border border-dashed border-border-strong rounded-xl">
+              <SlidersHorizontal className="w-7 h-7 text-text-muted mb-2 opacity-50" />
               <p className="text-xs font-mono">Synthesizing Latent Vector...</p>
             </div>
           )}
@@ -98,18 +97,16 @@ export const FaceStage: React.FC<FaceStageProps> = ({
 
         {/* Hover Action Toolbar */}
         {src && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            whileHover={{ opacity: 1, y: 0 }}
-            className="absolute bottom-5 inset-x-5 z-30 flex items-center justify-center gap-2 p-1.5 rounded-xl bg-[#07080D]/85 backdrop-blur-lg border border-white/15 opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-xl"
+          <div
+            className="absolute bottom-4 inset-x-4 z-30 flex items-center justify-center gap-1.5 p-1.5 rounded-xl bg-surface border border-border-subtle opacity-0 group-hover:opacity-100 transition-all duration-150 shadow-md"
           >
             <button
               type="button"
               onClick={handleDownload}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-xs text-[#EDEEF3] transition-colors"
-              title="Download High-Resolution PNG"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-surface-elevated text-xs font-medium text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
+              title="Download PNG"
             >
-              <Download className="w-3.5 h-3.5 text-[#38E1FF]" />
+              <Download className="w-3.5 h-3.5 text-text-muted" />
               <span>Save</span>
             </button>
 
@@ -117,13 +114,13 @@ export const FaceStage: React.FC<FaceStageProps> = ({
               <button
                 type="button"
                 onClick={handleCopySeed}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-xs text-[#EDEEF3] transition-colors"
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-surface-elevated text-xs font-mono text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
                 title="Copy Seed to Clipboard"
               >
                 {copied ? (
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                  <Check className="w-3.5 h-3.5 text-emerald-500" />
                 ) : (
-                  <Copy className="w-3.5 h-3.5 text-[#8B7CFF]" />
+                  <Copy className="w-3.5 h-3.5 text-text-muted" />
                 )}
                 <span>{copied ? "Copied" : `#${seed}`}</span>
               </button>
@@ -133,14 +130,14 @@ export const FaceStage: React.FC<FaceStageProps> = ({
               <button
                 type="button"
                 onClick={() => onOpenStudio(seed)}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-xs text-[#EDEEF3] transition-colors"
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-surface-elevated text-xs font-medium text-accent transition-colors cursor-pointer"
                 title="Open in Facial Math Studio"
               >
-                <ExternalLink className="w-3.5 h-3.5 text-[#FFB88A]" />
+                <ExternalLink className="w-3.5 h-3.5" />
                 <span>Sculpt</span>
               </button>
             )}
-          </motion.div>
+          </div>
         )}
       </div>
     </div>

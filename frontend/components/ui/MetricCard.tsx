@@ -37,23 +37,23 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   return (
     <div
       className={cn(
-        "rounded-2xl border border-white/[0.08] bg-[#0E1018]/80 p-4 shadow-lg backdrop-blur-xl flex flex-col justify-between",
+        "rounded-xl border border-border-subtle bg-surface p-4 shadow-xs flex flex-col justify-between transition-colors",
         className
       )}
     >
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-[#8B8FA3] tracking-wide">
+        <span className="text-xs font-medium text-text-muted tracking-wide">
           {label}
         </span>
         {delta !== undefined && (
           <div
             className={cn(
-              "flex items-center gap-0.5 text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full",
+              "flex items-center gap-0.5 text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md",
               isZeroDelta
-                ? "bg-white/[0.06] text-[#8B8FA3]"
+                ? "bg-surface-elevated text-text-muted border border-border-subtle"
                 : (isPositiveDelta && isReductionPositive) || (!isPositiveDelta && !isReductionPositive)
-                ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
-                : "bg-rose-500/15 text-rose-400 border border-rose-500/30"
+                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                : "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
             )}
           >
             {isZeroDelta ? (
@@ -72,19 +72,19 @@ export const MetricCard: React.FC<MetricCardProps> = ({
       </div>
 
       <div className="mt-2 flex items-baseline gap-1.5">
-        <span className="text-2xl font-bold font-mono tracking-tight text-[#EDEEF3]">
+        <span className="text-2xl font-bold font-mono tracking-tight text-text-primary">
           {displayValue}
         </span>
-        {unit && <span className="text-xs font-mono text-[#8B8FA3]">{unit}</span>}
+        {unit && <span className="text-xs font-mono text-text-muted">{unit}</span>}
       </div>
 
-      {/* Optional Sparkline visualization */}
+      {/* Sparkline visualization */}
       {sparklineData && sparklineData.length > 1 && (
         <div className="mt-3 h-8 w-full">
           <svg className="w-full h-full overflow-visible" preserveAspectRatio="none">
             <polyline
               fill="none"
-              stroke="#8B7CFF"
+              stroke="var(--accent)"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"

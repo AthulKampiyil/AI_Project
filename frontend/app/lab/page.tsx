@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { fetchResearchResults, ResultsResponse, ExperimentItem, PlotItem } from "@/lib/api";
 import { MOCK_LOSS_CURVES } from "@/lib/mockData";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { GlassCard } from "@/components/ui/GlassCard";
+import { Card } from "@/components/ui/GlassCard";
 import { MetricCard } from "@/components/ui/MetricCard";
 import { Tooltip } from "@/components/ui/Tooltip";
 import {
@@ -28,7 +28,6 @@ import {
   X,
   Cpu,
   Boxes,
-  Sparkles,
 } from "lucide-react";
 
 export default function LabPage() {
@@ -86,7 +85,7 @@ export default function LabPage() {
     }));
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <PageHeader
         title="Research Lab & Diagnostics"
         subtitle="Empirical benchmarking of Radford et al. (2015) DCGAN architecture across learning rates, batch sizes, Batch Normalization ablations, and optimizer momentum."
@@ -123,33 +122,33 @@ export default function LabPage() {
       </div>
 
       {/* 2. Charts Section: Loss Curves (L_D vs L_G) & FID Horizontal Bar */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Loss Curves */}
         <div className="lg:col-span-7">
-          <GlassCard className="p-6 space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/[0.08] pb-3">
+          <Card className="p-5 space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border-subtle pb-3">
               <div className="flex items-center gap-2">
-                <Activity className="w-4 h-4 text-[#8B7CFF]" />
-                <h3 className="text-sm font-semibold text-[#EDEEF3]">
+                <Activity className="w-4 h-4 text-accent" />
+                <h3 className="text-sm font-semibold text-text-primary">
                   Adversarial Loss Equilibrium (L_D vs. L_G)
                 </h3>
               </div>
 
               {/* EMA Smoothing Toggle */}
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-mono text-[#8B8FA3]">
+                <span className="text-[11px] font-mono text-text-muted">
                   EMA Smooth
                 </span>
                 <button
                   type="button"
                   onClick={() => setUseEma(!useEma)}
-                  className={`w-9 h-5 rounded-full transition-colors relative p-0.5 ${
-                    useEma ? "bg-[#8B7CFF]" : "bg-white/10"
+                  className={`w-8 h-4.5 rounded-full transition-colors relative p-0.5 cursor-pointer ${
+                    useEma ? "bg-accent" : "bg-surface-elevated border border-border-strong"
                   }`}
                 >
                   <div
-                    className={`w-4 h-4 rounded-full bg-white transition-transform ${
-                      useEma ? "translate-x-4" : "translate-x-0"
+                    className={`w-3.5 h-3.5 rounded-full bg-white transition-transform shadow-xs ${
+                      useEma ? "translate-x-3.5" : "translate-x-0"
                     }`}
                   />
                 </button>
@@ -159,29 +158,31 @@ export default function LabPage() {
             <div className="h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={MOCK_LOSS_CURVES} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" opacity={0.6} />
                   <XAxis
                     dataKey="epoch"
-                    stroke="#8B8FA3"
+                    stroke="var(--text-muted)"
                     fontSize={11}
                     tickLine={false}
-                    label={{ value: "Epoch", position: "insideBottomRight", offset: -5, fill: "#8B8FA3", fontSize: 10 }}
+                    label={{ value: "Epoch", position: "insideBottomRight", offset: -5, fill: "var(--text-muted)", fontSize: 10 }}
                   />
-                  <YAxis stroke="#8B8FA3" fontSize={11} tickLine={false} />
+                  <YAxis stroke="var(--text-muted)" fontSize={11} tickLine={false} />
                   <RechartsTooltip
                     contentStyle={{
-                      backgroundColor: "#0E1018",
-                      borderColor: "rgba(255,255,255,0.15)",
-                      borderRadius: "12px",
+                      backgroundColor: "var(--bg-surface)",
+                      borderColor: "var(--border-subtle)",
+                      borderRadius: "8px",
                       fontSize: "12px",
                       fontFamily: "monospace",
+                      color: "var(--text-primary)",
+                      boxShadow: "var(--shadow-card)",
                     }}
                   />
                   <Line
                     type="monotone"
                     dataKey={useEma ? "loss_d_ema" : "loss_d"}
                     name="Loss D (Discriminator)"
-                    stroke="#38E1FF"
+                    stroke="var(--accent-secondary)"
                     strokeWidth={2}
                     dot={false}
                   />
@@ -189,7 +190,7 @@ export default function LabPage() {
                     type="monotone"
                     dataKey={useEma ? "loss_g_ema" : "loss_g"}
                     name="Loss G (Generator)"
-                    stroke="#8B7CFF"
+                    stroke="var(--accent)"
                     strokeWidth={2}
                     dot={false}
                   />
@@ -197,27 +198,27 @@ export default function LabPage() {
               </ResponsiveContainer>
             </div>
 
-            <div className="flex items-center justify-between text-[11px] font-mono text-[#8B8FA3] pt-1">
+            <div className="flex items-center justify-between text-[11px] font-mono text-text-muted pt-1">
               <div className="flex items-center gap-4">
                 <span className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#38E1FF]" /> Loss D (Real vs Fake)
+                  <span className="w-2 h-2 rounded-full bg-sky-500" /> Loss D
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#8B7CFF]" /> Loss G (Fool Discriminator)
+                  <span className="w-2 h-2 rounded-full bg-accent" /> Loss G
                 </span>
               </div>
               <span>CelebA Baseline 25 Epochs</span>
             </div>
-          </GlassCard>
+          </Card>
         </div>
 
         {/* FID Bar Chart */}
         <div className="lg:col-span-5">
-          <GlassCard className="p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
+          <Card className="p-5 space-y-4">
+            <div className="flex items-center justify-between border-b border-border-subtle pb-3">
               <div className="flex items-center gap-2">
-                <FlaskConical className="w-4 h-4 text-[#38E1FF]" />
-                <h3 className="text-sm font-semibold text-[#EDEEF3]">
+                <FlaskConical className="w-4 h-4 text-accent" />
+                <h3 className="text-sm font-semibold text-text-primary">
                   Frechet Inception Distance (FID)
                 </h3>
               </div>
@@ -230,30 +231,32 @@ export default function LabPage() {
             <div className="h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={fidBarData} layout="vertical" margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                  <XAxis type="number" stroke="#8B8FA3" fontSize={11} tickLine={false} />
-                  <YAxis type="category" dataKey="name" stroke="#8B8FA3" fontSize={10} width={75} tickLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" opacity={0.6} />
+                  <XAxis type="number" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
+                  <YAxis type="category" dataKey="name" stroke="var(--text-muted)" fontSize={10} width={80} tickLine={false} />
                   <RechartsTooltip
                     contentStyle={{
-                      backgroundColor: "#0E1018",
-                      borderColor: "rgba(255,255,255,0.15)",
-                      borderRadius: "12px",
+                      backgroundColor: "var(--bg-surface)",
+                      borderColor: "var(--border-subtle)",
+                      borderRadius: "8px",
                       fontSize: "12px",
                       fontFamily: "monospace",
+                      color: "var(--text-primary)",
+                      boxShadow: "var(--shadow-card)",
                     }}
                   />
-                  <Bar dataKey="fid" radius={[0, 6, 6, 0]}>
+                  <Bar dataKey="fid" radius={[0, 4, 4, 0]}>
                     {fidBarData.map((entry, index) => (
                       <Cell
                         key={`cell-${index}`}
                         fill={
                           entry.name === selectedExperiment
-                            ? "#8B7CFF"
+                            ? "var(--accent)"
                             : entry.isBaseline
-                            ? "#38E1FF"
+                            ? "var(--accent-secondary)"
                             : entry.fid > 50
-                            ? "#FF6B7A"
-                            : "rgba(255,255,255,0.2)"
+                            ? "var(--danger)"
+                            : "var(--border-strong)"
                         }
                       />
                     ))}
@@ -262,24 +265,24 @@ export default function LabPage() {
               </ResponsiveContainer>
             </div>
 
-            <div className="text-[11px] font-mono text-[#8B8FA3] flex justify-between">
-              <span className="text-[#38E1FF]">Cyan = Baseline</span>
-              <span className="text-rose-400">Red = Mode Collapse / Divergence</span>
+            <div className="text-[11px] font-mono text-text-muted flex justify-between">
+              <span className="text-accent-secondary font-medium">Secondary = Baseline</span>
+              <span className="text-rose-500 font-medium">Red = Divergence</span>
             </div>
-          </GlassCard>
+          </Card>
         </div>
       </div>
 
       {/* 3. Experiment Data Table */}
-      <GlassCard className="p-6 space-y-4">
-        <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
+      <Card className="p-5 space-y-4">
+        <div className="flex items-center justify-between border-b border-border-subtle pb-3">
           <div className="flex items-center gap-2">
-            <Layers className="w-4 h-4 text-[#8B7CFF]" />
-            <h3 className="text-sm font-semibold text-[#EDEEF3]">
-              Ablation Matrix & Empirical Results (Click Row to Focus)
+            <Layers className="w-4 h-4 text-accent" />
+            <h3 className="text-sm font-semibold text-text-primary">
+              Ablation Matrix & Empirical Results
             </h3>
           </div>
-          <span className="text-xs font-mono text-[#8B8FA3]">
+          <span className="text-xs font-mono text-text-muted">
             {sortedExperiments.length} Benchmark Runs
           </span>
         </div>
@@ -287,10 +290,10 @@ export default function LabPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs font-mono">
             <thead>
-              <tr className="border-b border-white/[0.08] text-[#8B8FA3]">
+              <tr className="border-b border-border-subtle text-text-muted">
                 <th
                   onClick={() => handleSort("run_name")}
-                  className="py-2.5 px-3 cursor-pointer hover:text-[#EDEEF3]"
+                  className="py-2.5 px-3 cursor-pointer hover:text-text-primary"
                 >
                   <div className="flex items-center gap-1">
                     <span>Run Name</span>
@@ -299,37 +302,37 @@ export default function LabPage() {
                 </th>
                 <th
                   onClick={() => handleSort("change")}
-                  className="py-2.5 px-3 cursor-pointer hover:text-[#EDEEF3]"
+                  className="py-2.5 px-3 cursor-pointer hover:text-text-primary"
                 >
                   Change vs Baseline
                 </th>
                 <th
                   onClick={() => handleSort("epochs")}
-                  className="py-2.5 px-3 cursor-pointer hover:text-[#EDEEF3]"
+                  className="py-2.5 px-3 cursor-pointer hover:text-text-primary"
                 >
                   Epochs
                 </th>
                 <th
                   onClick={() => handleSort("sec_per_epoch")}
-                  className="py-2.5 px-3 cursor-pointer hover:text-[#EDEEF3]"
+                  className="py-2.5 px-3 cursor-pointer hover:text-text-primary"
                 >
                   Sec/Epoch
                 </th>
                 <th
                   onClick={() => handleSort("loss_d")}
-                  className="py-2.5 px-3 cursor-pointer hover:text-[#EDEEF3]"
+                  className="py-2.5 px-3 cursor-pointer hover:text-text-primary"
                 >
                   Final L_D
                 </th>
                 <th
                   onClick={() => handleSort("loss_g")}
-                  className="py-2.5 px-3 cursor-pointer hover:text-[#EDEEF3]"
+                  className="py-2.5 px-3 cursor-pointer hover:text-text-primary"
                 >
                   Final L_G
                 </th>
                 <th
                   onClick={() => handleSort("fid")}
-                  className="py-2.5 px-3 cursor-pointer hover:text-[#EDEEF3] text-right"
+                  className="py-2.5 px-3 cursor-pointer hover:text-text-primary text-right"
                 >
                   <div className="flex items-center justify-end gap-1">
                     <span>FID</span>
@@ -347,15 +350,15 @@ export default function LabPage() {
                   <tr
                     key={exp.run_name}
                     onClick={() => setSelectedExperiment(exp.run_name)}
-                    className={`border-b border-white/[0.04] transition-colors cursor-pointer ${
+                    className={`border-b border-border-subtle/50 transition-colors cursor-pointer ${
                       isSelected
-                        ? "bg-[#8B7CFF]/15 text-[#EDEEF3]"
-                        : "hover:bg-white/[0.03] text-[#8B8FA3] hover:text-[#EDEEF3]"
+                        ? "bg-accent-subtle text-text-primary font-medium"
+                        : "hover:bg-surface-elevated text-text-secondary hover:text-text-primary"
                     }`}
                   >
                     <td className="py-2.5 px-3 font-semibold flex items-center gap-1.5">
                       {isBaseline && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#38E1FF]" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-accent-secondary" />
                       )}
                       <span>{exp.run_name}</span>
                     </td>
@@ -367,10 +370,10 @@ export default function LabPage() {
                     <td
                       className={`py-2.5 px-3 text-right font-bold ${
                         exp.fid < 30
-                          ? "text-emerald-400"
+                          ? "text-emerald-600 dark:text-emerald-400"
                           : exp.fid > 50
-                          ? "text-rose-400"
-                          : "text-[#EDEEF3]"
+                          ? "text-rose-600 dark:text-rose-400"
+                          : "text-text-primary"
                       }`}
                     >
                       {exp.fid.toFixed(2)}
@@ -381,18 +384,18 @@ export default function LabPage() {
             </tbody>
           </table>
         </div>
-      </GlassCard>
+      </Card>
 
       {/* 4. Ablation Artifacts & Visual Gallery */}
-      <GlassCard className="p-6 space-y-4">
-        <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
+      <Card className="p-5 space-y-4">
+        <div className="flex items-center justify-between border-b border-border-subtle pb-3">
           <div className="flex items-center gap-2">
-            <Boxes className="w-4 h-4 text-[#38E1FF]" />
-            <h3 className="text-sm font-semibold text-[#EDEEF3]">
+            <Boxes className="w-4 h-4 text-accent" />
+            <h3 className="text-sm font-semibold text-text-primary">
               Ablation Artifacts & Failure Analysis Gallery
             </h3>
           </div>
-          <span className="text-xs font-mono text-[#8B8FA3]">
+          <span className="text-xs font-mono text-text-muted">
             Click any plot for full-screen inspection
           </span>
         </div>
@@ -402,135 +405,134 @@ export default function LabPage() {
             <div
               key={plot.id}
               onClick={() => setActiveLightboxPlot(plot)}
-              className="group rounded-2xl border border-white/[0.08] bg-[#0E1018]/80 overflow-hidden hover:border-[#8B7CFF]/50 transition-all cursor-pointer shadow-lg flex flex-col"
+              className="group rounded-xl border border-border-subtle bg-surface-elevated overflow-hidden hover:border-accent transition-all cursor-pointer shadow-xs flex flex-col"
             >
-              <div className="relative aspect-video bg-black/60 overflow-hidden flex items-center justify-center">
+              <div className="relative aspect-video bg-black/40 overflow-hidden flex items-center justify-center">
                 <img
                   src={`http://localhost:8000/results/${plot.filename}`}
                   alt={plot.title}
                   onError={(e) => {
-                    // Fallback to placeholder if server is in offline mock mode
                     (e.target as HTMLImageElement).src =
-                      "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 225' width='400' height='225'><rect width='400' height='225' fill='%230e1018'/><text x='50%25' y='50%25' fill='%238B7CFF' font-family='monospace' font-size='12' text-anchor='middle'>Ablation Artifact: " +
+                      "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 225' width='400' height='225'><rect width='400' height='225' fill='%2316181F'/><text x='50%25' y='50%25' fill='%236366F1' font-family='monospace' font-size='12' text-anchor='middle'>Artifact: " +
                       plot.id +
                       "</text></svg>";
                   }}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-200"
                 />
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                   <Maximize2 className="w-5 h-5 text-white" />
                 </div>
               </div>
-              <div className="p-3.5 space-y-1 flex-1 flex flex-col justify-between">
-                <h4 className="text-xs font-semibold text-[#EDEEF3] leading-snug">
+              <div className="p-3 space-y-1 flex-1 flex flex-col justify-between">
+                <h4 className="text-xs font-semibold text-text-primary leading-snug">
                   {plot.title}
                 </h4>
-                <p className="text-[11px] text-[#8B8FA3] line-clamp-2">
+                <p className="text-[11px] text-text-muted line-clamp-2">
                   {plot.desc}
                 </p>
               </div>
             </div>
           ))}
         </div>
-      </GlassCard>
+      </Card>
 
       {/* 5. DCGAN Architecture Topology Diagram */}
-      <GlassCard className="p-6 space-y-4">
-        <div className="flex items-center gap-2 border-b border-white/[0.08] pb-3">
-          <Cpu className="w-4 h-4 text-[#8B7CFF]" />
-          <h3 className="text-sm font-semibold text-[#EDEEF3]">
+      <Card className="p-5 space-y-4">
+        <div className="flex items-center gap-2 border-b border-border-subtle pb-3">
+          <Cpu className="w-4 h-4 text-accent" />
+          <h3 className="text-sm font-semibold text-text-primary">
             DCGAN Generator & Discriminator Architecture (Radford et al., 2015)
           </h3>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 font-mono text-xs">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
           {/* Generator */}
-          <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.08] space-y-3">
-            <div className="flex items-center justify-between text-xs font-bold text-[#38E1FF]">
+          <div className="p-4 rounded-xl bg-surface-elevated border border-border-subtle space-y-3">
+            <div className="flex items-center justify-between text-xs font-bold text-accent">
               <span>GENERATOR (G)</span>
               <span>3,576,704 Params</span>
             </div>
-            <div className="space-y-1.5 text-[11px] text-[#8B8FA3]">
-              <div className="p-1.5 rounded bg-black/40 border border-white/5">
+            <div className="space-y-1.5 text-[11px] text-text-muted">
+              <div className="p-1.5 rounded bg-surface border border-border-subtle">
                 Input: z ~ N(0, I) ∈ ℝ¹⁰⁰
               </div>
-              <div className="p-1.5 rounded bg-black/40 border border-white/5">
+              <div className="p-1.5 rounded bg-surface border border-border-subtle">
                 ConvTranspose2d(100, 512, 4, 1, 0) + BatchNorm + ReLU → 4×4×512
               </div>
-              <div className="p-1.5 rounded bg-black/40 border border-white/5">
+              <div className="p-1.5 rounded bg-surface border border-border-subtle">
                 ConvTranspose2d(512, 256, 4, 2, 1) + BatchNorm + ReLU → 8×8×256
               </div>
-              <div className="p-1.5 rounded bg-black/40 border border-white/5">
+              <div className="p-1.5 rounded bg-surface border border-border-subtle">
                 ConvTranspose2d(256, 128, 4, 2, 1) + BatchNorm + ReLU → 16×16×128
               </div>
-              <div className="p-1.5 rounded bg-black/40 border border-white/5">
+              <div className="p-1.5 rounded bg-surface border border-border-subtle">
                 ConvTranspose2d(128, 64, 4, 2, 1) + BatchNorm + ReLU → 32×32×64
               </div>
-              <div className="p-1.5 rounded bg-black/40 border border-[#8B7CFF]/30 text-[#EDEEF3]">
+              <div className="p-1.5 rounded bg-surface border border-accent/30 text-text-primary font-medium">
                 ConvTranspose2d(64, 3, 4, 2, 1) + Tanh → Output: 64×64×3
               </div>
             </div>
           </div>
 
           {/* Discriminator */}
-          <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.08] space-y-3">
-            <div className="flex items-center justify-between text-xs font-bold text-[#8B7CFF]">
+          <div className="p-4 rounded-xl bg-surface-elevated border border-border-subtle space-y-3">
+            <div className="flex items-center justify-between text-xs font-bold text-accent-secondary">
               <span>DISCRIMINATOR (D)</span>
               <span>2,765,568 Params</span>
             </div>
-            <div className="space-y-1.5 text-[11px] text-[#8B8FA3]">
-              <div className="p-1.5 rounded bg-black/40 border border-white/5">
+            <div className="space-y-1.5 text-[11px] text-text-muted">
+              <div className="p-1.5 rounded bg-surface border border-border-subtle">
                 Input: x ∈ ℝ⁶⁴ˣ⁶⁴ˣ³ (Real CelebA or Synthetic)
               </div>
-              <div className="p-1.5 rounded bg-black/40 border border-white/5">
+              <div className="p-1.5 rounded bg-surface border border-border-subtle">
                 Conv2d(3, 64, 4, 2, 1) + LeakyReLU(0.2) → 32×32×64
               </div>
-              <div className="p-1.5 rounded bg-black/40 border border-white/5">
+              <div className="p-1.5 rounded bg-surface border border-border-subtle">
                 Conv2d(64, 128, 4, 2, 1) + BatchNorm + LeakyReLU(0.2) → 16×16×128
               </div>
-              <div className="p-1.5 rounded bg-black/40 border border-white/5">
+              <div className="p-1.5 rounded bg-surface border border-border-subtle">
                 Conv2d(128, 256, 4, 2, 1) + BatchNorm + LeakyReLU(0.2) → 8×8×256
               </div>
-              <div className="p-1.5 rounded bg-black/40 border border-white/5">
+              <div className="p-1.5 rounded bg-surface border border-border-subtle">
                 Conv2d(256, 512, 4, 2, 1) + BatchNorm + LeakyReLU(0.2) → 4×4×512
               </div>
-              <div className="p-1.5 rounded bg-black/40 border border-[#38E1FF]/30 text-[#EDEEF3]">
+              <div className="p-1.5 rounded bg-surface border border-accent-secondary/30 text-text-primary font-medium">
                 Conv2d(512, 1, 4, 1, 0) + Sigmoid → P(real) ∈ [0, 1]
               </div>
             </div>
           </div>
         </div>
-      </GlassCard>
+      </Card>
 
       {/* Lightbox Modal for Full-Screen Plot Inspection */}
       {activeLightboxPlot && (
         <div
-          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md p-4 flex items-center justify-center"
+          className="fixed inset-0 z-50 bg-black/75 p-4 flex items-center justify-center"
           onClick={() => setActiveLightboxPlot(null)}
         >
           <div
-            className="relative max-w-4xl w-full bg-[#0E1018] border border-white/20 rounded-3xl p-5 shadow-2xl space-y-4"
+            className="relative max-w-4xl w-full bg-surface border border-border-subtle rounded-2xl p-5 shadow-2xl space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+            <div className="flex items-center justify-between border-b border-border-subtle pb-3">
               <div>
-                <h3 className="text-base font-bold text-[#EDEEF3]">
+                <h3 className="text-base font-bold text-text-primary">
                   {activeLightboxPlot.title}
                 </h3>
-                <p className="text-xs text-[#8B8FA3] font-mono mt-0.5">
+                <p className="text-xs text-text-muted font-mono mt-0.5">
                   {activeLightboxPlot.filename}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setActiveLightboxPlot(null)}
-                className="p-2 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-white"
+                className="p-1.5 rounded-lg bg-surface-elevated hover:bg-surface-hover border border-border-subtle text-text-primary cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="max-h-[70vh] flex items-center justify-center overflow-hidden rounded-2xl bg-black/60">
+            <div className="max-h-[70vh] flex items-center justify-center overflow-hidden rounded-xl bg-surface-elevated border border-border-subtle">
               <img
                 src={`http://localhost:8000/results/${activeLightboxPlot.filename}`}
                 alt={activeLightboxPlot.title}
@@ -538,7 +540,7 @@ export default function LabPage() {
               />
             </div>
 
-            <p className="text-xs text-[#EDEEF3] leading-relaxed font-mono">
+            <p className="text-xs text-text-secondary leading-relaxed font-mono">
               {activeLightboxPlot.desc}
             </p>
           </div>

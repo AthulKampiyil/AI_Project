@@ -4,18 +4,13 @@ import React, { useState } from "react";
 import { useMatchStore } from "@/store/useMatchStore";
 import { invertFacePhoto } from "@/lib/api";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { GlassCard } from "@/components/ui/GlassCard";
+import { Card } from "@/components/ui/GlassCard";
 import { PhotoDropzone } from "@/components/ui/PhotoDropzone";
 import { FaceStage } from "@/components/ui/FaceStage";
 import { MetricCard } from "@/components/ui/MetricCard";
-import { Tooltip } from "@/components/ui/Tooltip";
 import {
-  Camera,
-  Sparkles,
   ShieldCheck,
   Target,
-  ArrowRight,
-  TrendingDown,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 
@@ -54,13 +49,13 @@ export default function MatchPage() {
       });
       setLossHistory(generatedCurve);
 
-      // Celebration confetti if error reduction is high
+      // Subtle celebration if error reduction is high
       if (res.mseInitial > res.mseFinal) {
         confetti({
-          particleCount: 40,
-          spread: 60,
+          particleCount: 30,
+          spread: 50,
           origin: { y: 0.7 },
-          colors: ["#8B7CFF", "#38E1FF", "#4ADE80"],
+          colors: ["#6366F1", "#0284C7", "#10B981"],
         });
       }
     } catch {
@@ -76,10 +71,10 @@ export default function MatchPage() {
         badge="Gradient Optimization"
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left: Reconstructed Stage & Diagnostics */}
         <div className="lg:col-span-8 space-y-6">
-          <GlassCard className="p-6">
+          <Card className="p-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <FaceStage
@@ -87,7 +82,7 @@ export default function MatchPage() {
                   label="CROPPED TARGET"
                   loading={isOptimizing}
                 />
-                <div className="text-center text-[11px] font-mono text-[#8B8FA3]">
+                <div className="text-center text-[11px] font-mono text-text-muted">
                   Input Real Face (Preprocessed 64×64)
                 </div>
               </div>
@@ -98,17 +93,17 @@ export default function MatchPage() {
                   label="RECONSTRUCTED TWIN"
                   loading={isOptimizing}
                 />
-                <div className="text-center text-[11px] font-mono text-[#38E1FF]">
+                <div className="text-center text-[11px] font-mono text-accent font-medium">
                   Optimal Latent Reconstruction G(z*)
                 </div>
               </div>
             </div>
 
             {/* Note banner on resolution and synthetic representation */}
-            <div className="mt-6 p-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.06] flex items-start gap-3">
-              <ShieldCheck className="w-4 h-4 text-[#8B7CFF] shrink-0 mt-0.5" />
-              <div className="text-xs text-[#8B8FA3] space-y-0.5">
-                <p className="text-[#EDEEF3] font-medium">
+            <div className="mt-6 p-3.5 rounded-xl bg-surface-elevated border border-border-subtle flex items-start gap-3">
+              <ShieldCheck className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+              <div className="text-xs text-text-muted space-y-0.5">
+                <p className="text-text-primary font-medium">
                   Scientific Approximation Notice
                 </p>
                 <p className="leading-relaxed">
@@ -116,7 +111,7 @@ export default function MatchPage() {
                 </p>
               </div>
             </div>
-          </GlassCard>
+          </Card>
 
           {/* Diagnostics Metrics Row */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -146,9 +141,9 @@ export default function MatchPage() {
 
         {/* Right: Upload Dropzone & Optimization Settings */}
         <div className="lg:col-span-4 space-y-6">
-          <GlassCard className="p-5 space-y-5">
-            <div className="flex items-center gap-2 border-b border-white/[0.08] pb-3 text-sm font-semibold text-[#EDEEF3]">
-              <Target className="w-4 h-4 text-[#8B7CFF]" />
+          <Card className="p-5 space-y-5">
+            <div className="flex items-center gap-2 border-b border-border-subtle pb-3 text-sm font-semibold text-text-primary">
+              <Target className="w-4 h-4 text-accent" />
               <span>Inversion Setup</span>
             </div>
 
@@ -164,8 +159,8 @@ export default function MatchPage() {
             {/* Iterations Slider */}
             <div className="space-y-1.5 pt-2">
               <div className="flex justify-between text-xs">
-                <span className="text-[#8B8FA3]">Optimization Steps</span>
-                <span className="font-mono text-[#EDEEF3]">{iterations} steps</span>
+                <span className="text-text-muted">Optimization Steps</span>
+                <span className="font-mono text-text-primary">{iterations} steps</span>
               </div>
               <input
                 type="range"
@@ -175,9 +170,9 @@ export default function MatchPage() {
                 value={iterations}
                 onChange={(e) => setIterations(parseInt(e.target.value, 10))}
                 disabled={isOptimizing}
-                className="w-full accent-[#8B7CFF] cursor-pointer"
+                className="w-full accent-[var(--accent)] cursor-pointer"
               />
-              <div className="flex justify-between text-[10px] font-mono text-[#8B8FA3]">
+              <div className="flex justify-between text-[10px] font-mono text-text-muted">
                 <span>20 (Fast)</span>
                 <span>60 (Deep Fit)</span>
               </div>
@@ -188,14 +183,14 @@ export default function MatchPage() {
               type="button"
               onClick={handleRunInversion}
               disabled={!file || isOptimizing}
-              className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#8B7CFF] to-[#38E1FF] hover:opacity-95 text-black font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_20px_rgba(139,124,255,0.3)] disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-full py-2.5 px-4 rounded-xl bg-accent hover:bg-accent-hover text-white font-medium text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-xs disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              <Sparkles className="w-4 h-4 fill-black" />
+              <Target className="w-3.5 h-3.5" />
               <span>
                 {isOptimizing ? "Optimizing Latent Vector..." : "Find Synthetic Twin (Invert)"}
               </span>
             </button>
-          </GlassCard>
+          </Card>
         </div>
       </div>
     </div>

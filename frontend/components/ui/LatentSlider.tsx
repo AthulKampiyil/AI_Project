@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useRef } from "react";
 import { RotateCcw } from "lucide-react";
 
 interface LatentSliderProps {
@@ -20,7 +20,6 @@ export const LatentSlider: React.FC<LatentSliderProps> = ({
   onChange,
   disabled = false,
 }) => {
-  const [isHovered, setIsHovered] = useState(false);
   const trackRef = useRef<HTMLDivElement>(null);
 
   // Range is -1.5 to +1.5
@@ -56,32 +55,28 @@ export const LatentSlider: React.FC<LatentSliderProps> = ({
   };
 
   return (
-    <div
-      className="space-y-1.5 select-none"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <div className="space-y-1.5 select-none">
       <div className="flex items-center justify-between text-xs">
         <div className="flex items-center gap-2">
-          <span className="font-medium text-[#EDEEF3] text-xs">{label}</span>
+          <span className="font-medium text-text-primary text-xs">{label}</span>
           <button
             type="button"
             onClick={handleDoubleClick}
-            className={`text-[#8B8FA3] hover:text-[#8B7CFF] transition-opacity p-0.5 rounded ${
+            className={`text-text-muted hover:text-accent transition-opacity p-0.5 rounded cursor-pointer ${
               value !== 0 ? "opacity-100" : "opacity-0 pointer-events-none"
             }`}
-            title="Reset slider to 0.0 (Double-click)"
+            title="Reset slider to 0.0"
           >
             <RotateCcw className="w-3 h-3" />
           </button>
         </div>
         <span
-          className={`font-mono text-xs px-2 py-0.5 rounded transition-all ${
+          className={`font-mono text-[11px] px-2 py-0.5 rounded border transition-colors ${
             value === 0
-              ? "text-[#8B8FA3] bg-white/[0.04]"
+              ? "text-text-muted bg-surface-elevated border-border-subtle"
               : isPositive
-              ? "text-[#8B7CFF] bg-[#8B7CFF]/15 border border-[#8B7CFF]/30 font-semibold"
-              : "text-[#38E1FF] bg-[#38E1FF]/15 border border-[#38E1FF]/30 font-semibold"
+              ? "text-accent bg-accent-subtle border-accent/30 font-semibold"
+              : "text-accent-secondary bg-sky-500/10 border-sky-500/30 font-semibold"
           }`}
         >
           {value > 0 ? `+${value.toFixed(1)}` : value.toFixed(1)}
@@ -92,17 +87,17 @@ export const LatentSlider: React.FC<LatentSliderProps> = ({
       <div
         ref={trackRef}
         onDoubleClick={handleDoubleClick}
-        className="relative h-7 flex items-center cursor-pointer group"
+        className="relative h-6 flex items-center cursor-pointer group"
       >
         {/* Background Rail */}
-        <div className="absolute w-full h-2 rounded-full bg-white/[0.08] overflow-hidden">
+        <div className="absolute w-full h-1.5 rounded-full bg-surface-elevated border border-border-subtle overflow-hidden">
           {/* Center Detent Marker */}
-          <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-white/30 transform -translate-x-1/2 z-10" />
+          <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-border-strong transform -translate-x-1/2 z-10" />
 
           {/* Outward fill from center (50%) */}
           {isPositive ? (
             <div
-              className="absolute top-0 bottom-0 bg-gradient-to-r from-[#8B7CFF]/80 to-[#8B7CFF] rounded-r-full transition-all duration-75"
+              className="absolute top-0 bottom-0 bg-accent rounded-r-full transition-all duration-75"
               style={{
                 left: `${centerPercent}%`,
                 width: `${percent - centerPercent}%`,
@@ -110,7 +105,7 @@ export const LatentSlider: React.FC<LatentSliderProps> = ({
             />
           ) : (
             <div
-              className="absolute top-0 bottom-0 bg-gradient-to-l from-[#38E1FF]/80 to-[#38E1FF] rounded-l-full transition-all duration-75"
+              className="absolute top-0 bottom-0 bg-accent-secondary rounded-l-full transition-all duration-75"
               style={{
                 left: `${percent}%`,
                 width: `${centerPercent - percent}%`,
@@ -119,7 +114,7 @@ export const LatentSlider: React.FC<LatentSliderProps> = ({
           )}
         </div>
 
-        {/* Real HTML Range Slider for full keyboard and touch accessibility */}
+        {/* Real HTML Range Slider for full accessibility */}
         <input
           type="range"
           min={min}
@@ -136,17 +131,17 @@ export const LatentSlider: React.FC<LatentSliderProps> = ({
 
         {/* Custom Thumb visual handle */}
         <div
-          className="absolute w-4 h-4 rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.5)] border-2 border-[#0E1018] transform -translate-x-1/2 pointer-events-none transition-transform group-hover:scale-125 z-20"
+          className="absolute w-3.5 h-3.5 rounded-full bg-surface border-2 border-accent shadow-xs transform -translate-x-1/2 pointer-events-none transition-transform group-hover:scale-110 z-20"
           style={{ left: `${percent}%` }}
         />
       </div>
 
       {/* Left/Right Pole Labels */}
-      <div className="flex justify-between text-[11px] text-[#8B8FA3] tracking-wide">
-        <span className={value < 0 ? "text-[#38E1FF] font-medium" : ""}>
+      <div className="flex justify-between text-[11px] text-text-muted tracking-wide font-mono">
+        <span className={value < 0 ? "text-accent-secondary font-medium" : ""}>
           {leftPole}
         </span>
-        <span className={value > 0 ? "text-[#8B7CFF] font-medium" : ""}>
+        <span className={value > 0 ? "text-accent font-medium" : ""}>
           {rightPole}
         </span>
       </div>
