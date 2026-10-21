@@ -1,0 +1,146 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #07080D;
+  --bg-elevated: #0E1018;
+  --glass: rgba(255, 255, 255, 0.04);
+  --border: rgba(255, 255, 255, 0.08);
+  --border-focus: #8B7CFF;
+  --text: #EDEEF3;
+  --text-muted: #8B8FA3;
+  --accent: #8B7CFF;
+  --accent-2: #38E1FF;
+  --warm: #FFB88A;
+  --success: #4ADE80;
+  --danger: #FF6B7A;
+}
+
+@theme {
+  --color-bg: var(--bg);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-glass: var(--glass);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
+  --color-warm: var(--warm);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --font-mono: 'JetBrains Mono', monospace, ui-monospace;
+  --font-heading: 'Inter Tight', sans-serif;
+  --font-sans: 'Inter', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Subtle observatory background treatment: radial glows & noise */
+body::before {
+  content: "";
+  position: fixed;
+  top: -20%;
+  left: -15%;
+  width: 65vw;
+  height: 65vh;
+  background: radial-gradient(circle, rgba(139, 124, 255, 0.08) 0%, rgba(139, 124, 255, 0) 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  bottom: -20%;
+  right: -15%;
+  width: 65vw;
+  height: 65vh;
+  background: radial-gradient(circle, rgba(56, 225, 255, 0.07) 0%, rgba(56, 225, 255, 0) 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Glasscard surface */
+.glass-panel {
+  background: rgba(14, 16, 24, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card:hover {
+  border-color: rgba(139, 124, 255, 0.25);
+  box-shadow: 0 10px 30px -10px rgba(139, 124, 255, 0.15);
+}
+
+/* Face Stage warm radial glow */
+.face-stage-glow {
+  position: relative;
+}
+
+.face-stage-glow::before {
+  content: "";
+  position: absolute;
+  inset: -15px;
+  background: radial-gradient(circle at center, rgba(255, 184, 138, 0.12) 0%, rgba(255, 184, 138, 0) 70%);
+  border-radius: 32px;
+  pointer-events: none;
+  z-index: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* Native 64px pixelated rendering */
+.pixelated {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* Monospace metrics font styling */
+.font-mono-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-feature-settings: "tnum" 1, "zero" 1;
+}
+
+/* Custom minimal scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 124, 255, 0.4);
+}
+
+/* Focus outline */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
