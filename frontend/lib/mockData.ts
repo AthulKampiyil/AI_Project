@@ -96,11 +96,11 @@ export function generateMockFaceSvg(
 }
 
 export const HERO_PRESETS = [
-  { id: "42", name: "Clear Female", seed: 42, tag: "Clear Female", desc: "Balanced features, bright illumination" },
-  { id: "105", name: "Clear Male", seed: 105, tag: "Clear Male", desc: "Structured jawline, neutral lighting" },
-  { id: "212", name: "Warm & Balanced", seed: 212, tag: "Warm & Balanced", desc: "Softer tonal gradients, frontal gaze" },
-  { id: "543", name: "Studio Contrast", seed: 543, tag: "Studio Contrast", desc: "High key specular rim lighting" },
-  { id: "888", name: "Classic Pose", seed: 888, tag: "Classic Pose", desc: "Slight three-quarter turn, clear contrast" },
+  { id: "757", name: "Clear Male", seed: 757, tag: "Clear Male", desc: "Short dark hair, sharp masculine contours" },
+  { id: "979", name: "Smiling Male", seed: 979, tag: "Smiling Male", desc: "Expressive smile, dark hair, studio backdrop" },
+  { id: "333", name: "Clear Female", seed: 333, tag: "Clear Female", desc: "Frontal gaze, high clarity studio portrait" },
+  { id: "42", name: "Warm Smile", seed: 42, tag: "Warm Smile", desc: "Blonde hair, warm smile, balanced lighting" },
+  { id: "114", name: "Classic Contrast", seed: 114, tag: "Classic Contrast", desc: "Sharp eyes and lips, brunette curls" },
 ];
 
 export const MOCK_EXPERIMENTS = [

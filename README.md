@@ -30,20 +30,50 @@ Radford, A., Metz, L., & Chintala, S. (2015). "Unsupervised Representation Learn
 - exp_w128 changed both the width and the batch size (64), so its gain over base_10ep cannot be credited to width alone; compare it with exp_bs64.
 - Every result is a single run with one random seed, so small FID differences (a few points) may be noise.
 
-## Quick Start (Demo)
+## Latent Studio — Next.js & FastAPI Web App
 
-You can run the demo using the included pre-trained weights.
+"The Latent Observatory" is a state-of-the-art Next.js web application replacing the legacy Gradio demo with a scientific dark-mode user interface, Radix/Tailwind precision dials, Framer Motion springs, interactive Recharts diagnostics, and Three.js 3D hypersphere visualization.
 
-1. Install the CUDA build of PyTorch from [pytorch.org](https://pytorch.org/).
-2. Install the remaining requirements:
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. Run the interactive web demo:
-   ```bash
-   python demo_app.py --ckpt weights/generator_celeba_dcgan.pt
-   ```
-4. Or generate a grid of faces from the command line:
+### Running the Fullstack Application
+
+#### 1. Start the High-Performance FastAPI Backend
+```bash
+# In project root:
+python main.py
+# Server runs on http://localhost:8000 (API docs available at /docs)
+```
+
+#### 2. Start the Next.js Frontend
+```bash
+# In a new terminal window:
+cd frontend
+npm run dev
+# Open http://localhost:3000 in your browser
+```
+
+#### 3. Standalone Mock Mode (No Python backend required)
+You can run the web app in pure mock mode with procedural visual SVG face generation:
+```bash
+cd frontend
+# Set mock environment variable
+set NEXT_PUBLIC_MOCK=1    # On Windows cmd
+$env:NEXT_PUBLIC_MOCK="1" # On PowerShell
+npm run dev
+```
+
+---
+
+## Legacy Gradio Quick Start
+If desired, the original Gradio demo can still be launched via:
+```bash
+python demo_app.py --ckpt weights/generator_celeba_dcgan.pt
+```
+   The upgraded lab includes 4 dedicated research modules:
+   - **🎭 Facial Math Studio**: Real-time facial expression sculpting using closed-form latent space factorization (SeFa). Control smile intensity, lighting/pose, age, and gender structure via continuous sliders.
+   - **🎬 Morphing Studio**: Smooth face-to-face transformation animations with comparative high-dimensional hypersphere geometry (Spherical Linear Interpolation `Slerp` vs. Euclidean `Lerp`).
+   - **🪞 Photo Matcher (GAN Inversion)**: Test-time backpropagation optimization solving $z^* = \arg\min_z \|G(z) - x\|^2$ to reconstruct uploaded real photos into the DCGAN's learned manifold.
+   - **🎲 Classic Grid Generator**: Single-click 1-face and 16-face grid generator.
+3. Or generate a grid of faces from the command line:
    ```bash
    python generate.py --ckpt weights/generator_celeba_dcgan.pt --mode grid --out results/generated.png
    ```
@@ -70,8 +100,9 @@ To download the datasets, you will need a Kaggle API token (`kaggle.json`). You 
 - `.gitignore`: Git exclusion file.
 - `README.md`: This project documentation.
 - `requirements.txt`: Python package dependencies.
+- `latent_ops.py`: Latent operations module (Slerp/Lerp interpolation, closed-form semantic factorization, and GAN inversion).
+- `demo_app.py`: Interactive Gradio research laboratory for facial math, morphing, and GAN inversion.
 - `check_gpu.py`: Utility to verify CUDA availability.
-- `demo_app.py`: Interactive Gradio web interface for the generator.
 - `fid_eval.py`: Script to calculate the Frechet Inception Distance (FID).
 - `generate.py`: CLI tool for generating faces (grid or interpolation modes).
 - `models.py`: PyTorch definitions for the DCGAN Generator and Discriminator.
