@@ -1,0 +1,126 @@
+{
+  "notes": [
+    "FID for ffhq_baseline is measured against FFHQ images and is not directly comparable to the CelebA runs.",
+    "FFHQ dataset contains 52,001 images.",
+    "exp_w128 changed both the width and the batch size (64), so its gain over base_10ep cannot be credited to width alone; compare it with exp_bs64.",
+    "Every result is a single run with one random seed, so small FID differences (a few points) may be noise."
+  ],
+  "experiments": [
+    {
+      "run_name": "celeba_baseline",
+      "change": "Baseline (25 epochs)",
+      "epochs": 25,
+      "sec_per_epoch": 137.5,
+      "loss_d": 0.08,
+      "loss_g": 4.005,
+      "fid": 29.85
+    },
+    {
+      "run_name": "base_10ep",
+      "change": "Baseline for comparison",
+      "epochs": 10,
+      "sec_per_epoch": 138.4,
+      "loss_d": 0.321,
+      "loss_g": 2.955,
+      "fid": 30.15
+    },
+    {
+      "run_name": "exp_nobn",
+      "change": "No BatchNorm",
+      "epochs": 10,
+      "sec_per_epoch": 129.6,
+      "loss_d": 0.884,
+      "loss_g": 0.747,
+      "fid": 44.2
+    },
+    {
+      "run_name": "exp_lr5e-4",
+      "change": "High LR (5e-4)",
+      "epochs": 10,
+      "sec_per_epoch": 141.4,
+      "loss_d": 1.128,
+      "loss_g": 2.146,
+      "fid": 32.28
+    },
+    {
+      "run_name": "exp_beta0.9",
+      "change": "Adam beta1=0.9",
+      "epochs": 10,
+      "sec_per_epoch": 140.5,
+      "loss_d": 0.125,
+      "loss_g": 7.147,
+      "fid": 148.64
+    },
+    {
+      "run_name": "ffhq_baseline",
+      "change": "FFHQ dataset",
+      "epochs": 10,
+      "sec_per_epoch": 35.0,
+      "loss_d": 0.456,
+      "loss_g": 3.876,
+      "fid": 94.39
+    },
+    {
+      "run_name": "exp_w128",
+      "change": "Wider networks (ngf=128, ndf=128, batch=64)",
+      "epochs": 10,
+      "sec_per_epoch": 452.5,
+      "loss_d": 0.182,
+      "loss_g": 5.291,
+      "fid": 23.95
+    },
+    {
+      "run_name": "exp_bs64",
+      "change": "batch size 64, same width as baseline",
+      "epochs": 10,
+      "sec_per_epoch": 517.1,
+      "loss_d": 0.118,
+      "loss_g": 4.708,
+      "fid": 28.75
+    }
+  ],
+  "plots": [
+    {
+      "id": "celeba_baseline_curves",
+      "title": "CelebA Baseline Loss Curves",
+      "filename": "celeba_baseline_curves.png",
+      "desc": "L_D vs L_G over 25 epochs showing healthy adversarial equilibrium."
+    },
+    {
+      "id": "exp_nobn_curves",
+      "title": "Ablation: No BatchNorm Loss Curves",
+      "filename": "exp_nobn_curves.png",
+      "desc": "Discriminator loss collapses and Generator loss explodes without batch normalization."
+    },
+    {
+      "id": "exp_beta0.9_curves",
+      "title": "Ablation: Adam Beta1=0.9 Loss Curves",
+      "filename": "exp_beta0.9_curves.png",
+      "desc": "Higher momentum creates oscillations and destabilizes training."
+    },
+    {
+      "id": "compare_lr_beta",
+      "title": "Learning Rate & Momentum Grid Comparison",
+      "filename": "compare_lr_beta.png",
+      "desc": "Visual matrix across LR (2e-4 vs 5e-4) and Beta1 (0.5 vs 0.9)."
+    },
+    {
+      "id": "compare_width_vs_batch",
+      "title": "Network Width vs Batch Size",
+      "filename": "compare_width_vs_batch.png",
+      "desc": "Comparing baseline vs wider networks (ngf=128, ndf=128) vs batch size 64."
+    },
+    {
+      "id": "compare_failures",
+      "title": "Failure Mode Analysis (Mode Collapse & Artifacts)",
+      "filename": "compare_failures.png",
+      "desc": "Analysis of pathological DCGAN failure modes across unstable configurations."
+    },
+    {
+      "id": "celeba_baseline_epoch_strip",
+      "title": "Evolution Strip (Epoch 1 to 25)",
+      "filename": "celeba_baseline_epoch_strip.png",
+      "desc": "Progressive facial emergence across 25 training epochs."
+    }
+  ]
+}

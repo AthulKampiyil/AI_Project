@@ -2,6 +2,7 @@ import os
 import subprocess
 import pandas as pd
 import torch
+import json
 from torchvision.utils import make_grid
 from torchvision.transforms.functional import to_pil_image
 import shutil
@@ -101,13 +102,49 @@ for r in summary_rows:
     if r["Run"] in fids:
         r["FID"] = fids[r["Run"]]
 
-with open("results/summary_table.md", "w") as f:
-    f.write("| Run Name | Change vs Baseline | Epochs | Sec/Epoch | Final LossD | Final LossG | FID |\n")
-    f.write("|---|---|---|---|---|---|---|\n")
-    for r in summary_rows:
-        if r["Run"] in ["smoke_test", "exp_lr1e-4"]: continue
-        f.write(f"| {r['Run']} | {r['Change']} | {r['Epochs']} | {r['Sec/Epoch']} | {r['Loss D']} | {r['Loss G']} | {r['FID']} |\n")
-    f.write("\n*Note: FID for ffhq_baseline is measured against FFHQ images and is not directly comparable to the CelebA runs.*\n")
+summary_path = "results/experiment_summary.json"
+with open(summary_path, "r", encoding="utf-8") as f:
+    summary = json.load(f)
+
+
+def numeric_or_none(value):
+    if value in ("N/A", "Error"):
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+experiments = summary.setdefault("experiments", [])
+for row in summary_rows:
+    run = row["Run"]
+    if run in ["smoke_test", "exp_lr1e-4"]:
+        continue
+    experiment = {
+        "run_name": run,
+        "change": row["Change"],
+        "epochs": int(row["Epochs"]),
+        "sec_per_epoch": numeric_or_none(row["Sec/Epoch"]),
+        "loss_d": numeric_or_none(row["Loss D"]),
+        "loss_g": numeric_or_none(row["Loss G"]),
+        "fid": numeric_or_none(row["FID"]),
+    }
+    for index, current in enumerate(experiments):
+        if current.get("run_name") == run:
+            experiments[index] = {**current, **experiment}
+            break
+    else:
+        experiments.append(experiment)
+
+notes = summary.setdefault("notes", [])
+fid_note = "FID for ffhq_baseline is measured against FFHQ images and is not directly comparable to the CelebA runs."
+if fid_note not in notes:
+    notes.append(fid_note)
+
+with open(summary_path, "w", encoding="utf-8") as f:
+    json.dump(summary, f, indent=2)
+    f.write("\n")
 
 from generate import load_generator
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

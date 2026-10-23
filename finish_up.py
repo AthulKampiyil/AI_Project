@@ -1,14 +1,34 @@
 import os
 import subprocess
 import pandas as pd
-import time
+import json
+
+
+SUMMARY_PATH = "results/experiment_summary.json"
+
+
+def update_experiment_summary(summary_path, experiment):
+    with open(summary_path, "r", encoding="utf-8") as f:
+        summary = json.load(f)
+
+    experiments = summary.setdefault("experiments", [])
+    for index, current in enumerate(experiments):
+        if current.get("run_name") == experiment["run_name"]:
+            experiments[index] = {**current, **experiment}
+            break
+    else:
+        experiments.append(experiment)
+
+    with open(summary_path, "w", encoding="utf-8") as f:
+        json.dump(summary, f, indent=2)
+        f.write("\n")
 
 def main():
     print("Running tasks...")
     subprocess.run(["chmod", "+x", "run_tasks.sh"])
     subprocess.run(["./run_tasks.sh"], check=True)
     
-    print("Tasks finished. Updating summary table...")
+    print("Tasks finished. Updating experiment summary...")
     
     # 1. Parse exp_bs64 log and FID
     run = "exp_bs64"
@@ -45,29 +65,17 @@ def main():
                 fid_val = lines[i].strip().split()[-1]
                 break
 
-    # 2. Update table
-    table_path = "results/summary_table.md"
-    with open(table_path, "r") as f:
-        content = f.read()
-    
-    # Insert row before the Note
-    row = f"| {run} | batch size 64, same width as baseline | {epochs_done} | {sec_per_epoch} | {final_lossD} | {final_lossG} | {fid_val} |\n"
-    
-    parts = content.split("\n*Note: ")
-    new_table = parts[0] + "\n" + row + "\n*Note: " + parts[1]
-    
-    # Add notes
-    notes = (
-        "- FFHQ dataset contains 52,001 images.\n"
-        "- exp_w128 changed both the width and the batch size (64), so its gain over base_10ep cannot be credited to width alone; compare it with exp_bs64.\n"
-        "- Every result is a single run with one random seed, so small FID differences (a few points) may be noise.\n"
-    )
-    new_table += "\n" + notes
-    
-    with open(table_path, "w") as f:
-        f.write(new_table)
+    update_experiment_summary(SUMMARY_PATH, {
+        "run_name": run,
+        "change": "batch size 64, same width as baseline",
+        "epochs": int(epochs_done),
+        "sec_per_epoch": float(sec_per_epoch.removesuffix("s")) if sec_per_epoch != "N/A" else None,
+        "loss_d": float(final_lossD) if final_lossD != "N/A" else None,
+        "loss_g": float(final_lossG) if final_lossG != "N/A" else None,
+        "fid": float(fid_val) if fid_val not in ("N/A", "Error") else None,
+    })
         
-    print("Table updated!")
+    print("Experiment summary updated!")
     print(f"exp_bs64 FID: {fid_val}")
     print(f"exp_bs64 LossD: {final_lossD}, LossG: {final_lossG}, Sec/epoch: {sec_per_epoch}")
     

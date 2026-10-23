@@ -292,7 +292,7 @@ back to zero vectors if absent.
   `/api/morph`, `/api/strips`, `/api/invert`, `/api/grid`, `/api/results`.
 - **Gradio.** `demo_app.py` — 4 tabs (Facial Math, Morphing, Photo Matcher, Grid).
 - **Plotting / reporting.** `plot_results.py`, `export_results.py`, `finish_up.py`,
-  `wrap_up.py`, `results/summary_table.md`, `results/results.json`.
+  `wrap_up.py`, `results/experiment_summary.json`, `results/results.json`.
 - **Automation.** `run_experiments.sh`, `run_tasks.sh`.
 - **Frontend.** `frontend/` — Next.js 16 App Router + Tailwind v4 + Zustand + Framer
   Motion + Recharts + Three.js.
