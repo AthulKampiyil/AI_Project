@@ -8,3 +8,6 @@ kagglehub
 gradio
 torchmetrics
 torch-fidelity
+fastapi
+uvicorn
+python-multipart

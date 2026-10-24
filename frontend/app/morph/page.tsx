@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useMorphStore } from "@/store/useMorphStore";
 import { morphFaces, fetchStrips } from "@/lib/api";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 
 export default function MorphPage() {
+  const [error, setError] = useState("");
   const {
     seedA,
     seedB,
@@ -41,22 +42,26 @@ export default function MorphPage() {
   } = useMorphStore();
 
   const handleGenerateReel = async () => {
+    setError("");
     setGenerating(true);
     try {
       const res = await morphFaces({ seedA, seedB, mode, steps, fps });
       setReel(res.gifUrl, res.frames);
     } catch {
       setGenerating(false);
+      setError("Could not generate the morph. Check the connection and try again.");
     }
   };
 
   const handleCompareStrips = async () => {
+    setError("");
     setStripsLoading(true);
     try {
       const res = await fetchStrips({ seedA, seedB, steps: 7 });
       setStrips(res.lerp, res.slerp);
     } catch {
       setStripsLoading(false);
+      setError("Could not load comparison strips. Check the connection and try again.");
     }
   };
 
@@ -67,6 +72,7 @@ export default function MorphPage() {
         subtitle="Interpolate smoothly between two distant points in Gaussian latent space. Slerp stays on the high-probability hypersphere shell; Lerp cuts straight through the hollow core."
         badge="Geodesic Path"
       />
+      {error && <p role="alert" className="text-sm text-rose-600">{error}</p>}
 
       {/* Main Grid: Player Stage & Filmstrip (left) + Controls & 3D (right) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">

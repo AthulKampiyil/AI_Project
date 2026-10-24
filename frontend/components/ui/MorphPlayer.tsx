@@ -19,12 +19,7 @@ export const MorphPlayer: React.FC<MorphPlayerProps> = ({
 }) => {
   const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
-  const [playbackFps, setPlaybackFps] = useState(fps);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    setPlaybackFps(fps);
-  }, [fps]);
 
   useEffect(() => {
     if (!isPlaying || frames.length === 0) {
@@ -32,7 +27,7 @@ export const MorphPlayer: React.FC<MorphPlayerProps> = ({
       return;
     }
 
-    const intervalMs = Math.max(20, Math.floor(1000 / playbackFps));
+    const intervalMs = Math.max(20, Math.floor(1000 / fps));
     timerRef.current = setInterval(() => {
       setCurrentFrameIndex((prev) => (prev + 1) % frames.length);
     }, intervalMs);
@@ -40,7 +35,7 @@ export const MorphPlayer: React.FC<MorphPlayerProps> = ({
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [isPlaying, frames, playbackFps]);
+  }, [isPlaying, frames, fps]);
 
   const handleStepBack = () => {
     setIsPlaying(false);
@@ -174,7 +169,7 @@ export const MorphPlayer: React.FC<MorphPlayerProps> = ({
         {/* FPS Indicator & Download */}
         <div className="flex items-center gap-2">
           <div className="text-[11px] font-mono text-text-muted px-2 py-1 rounded-md bg-surface-elevated border border-border-subtle">
-            {playbackFps} FPS
+            {fps} FPS
           </div>
 
           <button

@@ -1,6 +1,7 @@
 import os
 import io
 import base64
+import hashlib
 import torch
 import torch.nn.functional as F
 import numpy as np
@@ -52,9 +53,7 @@ def load_attribute_vectors(device, vector_path="weights/attribute_vectors.pt"):
     if os.path.exists(vector_path):
         data = torch.load(vector_path, map_location=device)
         return {k: v.to(device) for k, v in data.items()}
-    # Fallback to zeros if not found
-    fallback = torch.zeros(1, 100, 1, 1, device=device)
-    return {"smile": fallback, "pose": fallback, "gender": fallback, "light": fallback}
+    return {}
 
 
 def tensor_to_pil(tensor, size=(384, 384), enhance=True):
@@ -150,6 +149,8 @@ def invert_face(G, nz, device, target_pil_img, steps=40, lr=0.10):
     1. Multi-candidate random sampling on the Gaussian hypersphere to find the best starting basin.
     2. Test-time backpropagation optimization on z to minimize reconstruction MSE.
     """
+    G.eval()
+    G.requires_grad_(False)
     w, h = target_pil_img.size
     s = min(w, h)
     left, top = (w - s) // 2, (h - s) // 2
@@ -157,14 +158,20 @@ def invert_face(G, nz, device, target_pil_img, steps=40, lr=0.10):
     arr = np.array(cropped.convert("RGB"), dtype=np.float32) / 127.5 - 1.0
     target_tensor = torch.from_numpy(arr).permute(2, 0, 1).unsqueeze(0).to(device)
 
+    # Seed a local generator from the actual crop without changing global RNG state.
+    seed = int.from_bytes(hashlib.sha256(arr.tobytes()).digest()[:8], "little")
+    rng = torch.Generator(device=device).manual_seed(seed)
+
     # 1. Smart initialization: sample 30 candidates
     with torch.no_grad():
-        candidates = torch.randn(30, nz, 1, 1, device=device)
+        candidates = torch.randn(30, nz, 1, 1, device=device, generator=rng)
         cand_imgs = G(candidates)
         mse_scores = ((cand_imgs - target_tensor) ** 2).mean(dim=[1, 2, 3])
         best_idx = torch.argmin(mse_scores)
         best_z = candidates[best_idx : best_idx + 1].clone()
         init_mse = mse_scores[best_idx].item()
+        best_mse = init_mse
+        best_z_snapshot = best_z.clone()
 
     # 2. Optimize latent vector
     best_z.requires_grad_(True)
@@ -176,12 +183,17 @@ def invert_face(G, nz, device, target_pil_img, steps=40, lr=0.10):
         loss = F.mse_loss(gen, target_tensor) + 0.001 * torch.mean(best_z ** 2)
         loss.backward()
         optimizer.step()
+        with torch.no_grad():
+            candidate = G(best_z)
+            candidate_mse = F.mse_loss(candidate, target_tensor).item()
+            if candidate_mse < best_mse:
+                best_mse = candidate_mse
+                best_z_snapshot = best_z.detach().clone()
 
     with torch.no_grad():
-        reconstructed_tensor = G(best_z)[0]
+        reconstructed_tensor = G(best_z_snapshot)[0]
+        final_mse = F.mse_loss(reconstructed_tensor.unsqueeze(0), target_tensor).item()
 
     rec_pil = tensor_to_pil(reconstructed_tensor, size=(384, 384))
     orig_pil = cropped.resize((384, 384), Image.Resampling.BICUBIC)
-    final_mse = float(loss.item())
-
-    return orig_pil, rec_pil, best_z.detach(), init_mse, final_mse
+    return orig_pil, rec_pil, best_z_snapshot.detach(), init_mse, final_mse

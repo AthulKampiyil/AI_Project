@@ -3,14 +3,16 @@ import io
 import time
 import base64
 import json
+import threading
 from typing import Optional, List
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+from starlette.concurrency import run_in_threadpool
 import torch
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageOps, UnidentifiedImageError
 
 from generate import load_generator
 import latent_ops
@@ -36,16 +38,17 @@ if os.path.exists("results"):
 
 # Model state
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-CKPT_PATH = "weights/generator_celeba_dcgan.pt"
-if not os.path.exists(CKPT_PATH):
-    if os.path.exists("checkpoints/celeba_baseline/latest.pt"):
-        CKPT_PATH = "checkpoints/celeba_baseline/latest.pt"
+CKPT_PATH = os.environ.get("DCGAN_CKPT", "weights/generator_celeba_dcgan.pt")
+MODEL_ID: Optional[str] = None
 
 G = None
 NZ = 100
-ATTR_VECTORS = {}
 MODEL_LOADED = False
 BENCHMARK_LATENCY_MS = 0.0
+MAX_INVERSION_UPLOAD_BYTES = 10 * 1024 * 1024
+MAX_INVERSION_PIXELS = 25_000_000
+INVERSION_SLOT = threading.BoundedSemaphore(1)
+# Multi-face detection is out of scope; inversion processes the center crop.
 
 def pil_to_base64_data_url(pil_img: Image.Image, format: str = "PNG") -> str:
     buffered = io.BytesIO()
@@ -60,11 +63,12 @@ def get_latent_vector(seed: int) -> torch.Tensor:
 
 @app.on_event("startup")
 def load_model():
-    global G, NZ, ATTR_VECTORS, MODEL_LOADED, BENCHMARK_LATENCY_MS
+    global G, NZ, MODEL_LOADED, BENCHMARK_LATENCY_MS, MODEL_ID
     try:
         print(f"Loading DCGAN generator on {device} from {CKPT_PATH}...")
         G, NZ = load_generator(CKPT_PATH, device)
-        ATTR_VECTORS = latent_ops.load_attribute_vectors(device)
+        G.eval()
+        G.requires_grad_(False)
         MODEL_LOADED = True
         
         # Benchmark single inference
@@ -75,10 +79,12 @@ def load_model():
         if device.type == "cuda":
             torch.cuda.synchronize()
         BENCHMARK_LATENCY_MS = round((time.perf_counter() - t0) * 1000.0, 1)
+        MODEL_ID = os.path.basename(os.path.normpath(CKPT_PATH))
         print(f"Model successfully loaded. Benchmark latency: {BENCHMARK_LATENCY_MS} ms")
     except Exception as e:
         print(f"Error loading model weights: {e}")
         MODEL_LOADED = False
+        MODEL_ID = None
 
 # Request / Response Schemas
 class SculptRequest(BaseModel):
@@ -125,43 +131,36 @@ class HealthResponse(BaseModel):
     weightsLoaded: bool
     device: str
     latencyMs: float
+    modelId: Optional[str]
+    sculptAvailable: bool
 
 @app.get("/api/health", response_model=HealthResponse)
 def health():
     return HealthResponse(
         weightsLoaded=MODEL_LOADED,
         device=str(device),
-        latencyMs=BENCHMARK_LATENCY_MS
+        latencyMs=BENCHMARK_LATENCY_MS,
+        modelId=MODEL_ID,
+        sculptAvailable=False,
     )
 
 @app.post("/api/sculpt", response_model=SculptResponse)
 def sculpt(req: SculptRequest):
     if not MODEL_LOADED:
         raise HTTPException(status_code=503, detail="Model weights not loaded")
+
+    if any((req.smile, req.pose, req.hair, req.light)):
+        raise HTTPException(status_code=422, detail="Semantic sculpting is unavailable for this model")
     
     with torch.no_grad():
         base_z = get_latent_vector(req.seed)
-        v_smile = ATTR_VECTORS.get("smile", torch.zeros_like(base_z))
-        v_pose = ATTR_VECTORS.get("pose", torch.zeros_like(base_z))
-        v_gender = ATTR_VECTORS.get("gender", torch.zeros_like(base_z))
-        v_light = ATTR_VECTORS.get("light", torch.zeros_like(base_z))
-
-        delta = (
-            float(req.smile) * v_smile
-            + float(req.pose) * v_pose
-            + float(req.hair) * v_gender
-            + float(req.light) * v_light
-        )
-
-        modified_z = latent_ops.project_to_sphere(base_z + delta, base_z)
-        z_norm = float(torch.norm(modified_z.view(-1)).item())
+        z_norm = float(torch.norm(base_z.view(-1)).item())
 
         base_img = latent_ops.tensor_to_pil(G(base_z)[0], size=(384, 384))
-        sculpted_img = latent_ops.tensor_to_pil(G(modified_z)[0], size=(384, 384))
 
     return SculptResponse(
         base=pil_to_base64_data_url(base_img),
-        sculpted=pil_to_base64_data_url(sculpted_img),
+        sculpted=pil_to_base64_data_url(base_img),
         zNorm=round(z_norm, 2)
     )
 
@@ -237,16 +236,31 @@ async def invert(
     if not MODEL_LOADED:
         raise HTTPException(status_code=503, detail="Model weights not loaded")
 
-    contents = await image.read()
+    contents = await image.read(MAX_INVERSION_UPLOAD_BYTES + 1)
+    if len(contents) > MAX_INVERSION_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="Image upload exceeds the 10 MB limit")
     try:
-        pil_img = Image.open(io.BytesIO(contents)).convert("RGB")
-    except Exception:
+        with Image.open(io.BytesIO(contents)) as source:
+            if source.format not in {"JPEG", "PNG", "WEBP", "BMP", "TIFF"}:
+                raise HTTPException(status_code=415, detail="Unsupported image format")
+            if source.width * source.height > MAX_INVERSION_PIXELS:
+                raise HTTPException(status_code=413, detail="Image exceeds the 25 megapixel limit")
+            pil_img = ImageOps.exif_transpose(source).convert("RGB")
+    except HTTPException:
+        raise
+    except (UnidentifiedImageError, OSError, ValueError, Image.DecompressionBombError):
         raise HTTPException(status_code=400, detail="Invalid image file")
 
-    steps = max(10, min(iterations, 80))
-    orig_pil, rec_pil, _, init_mse, final_mse = latent_ops.invert_face(
-        G, NZ, device, pil_img, steps=steps, lr=0.10
-    )
+    if not INVERSION_SLOT.acquire(blocking=False):
+        raise HTTPException(status_code=503, detail="Image inversion is busy; retry shortly")
+
+    try:
+        steps = max(10, min(iterations, 80))
+        orig_pil, rec_pil, _, init_mse, final_mse = await run_in_threadpool(
+            latent_ops.invert_face, G, NZ, device, pil_img, steps=steps, lr=0.10
+        )
+    finally:
+        INVERSION_SLOT.release()
 
     return {
         "target": pil_to_base64_data_url(orig_pil),

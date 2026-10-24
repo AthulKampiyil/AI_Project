@@ -7,7 +7,7 @@ from models import Generator
 
 
 def load_generator(ckpt_path, device):
-    ck = torch.load(ckpt_path, map_location=device)
+    ck = torch.load(ckpt_path, map_location=device, weights_only=True)
     a = ck["args"]
     G = Generator(a["nz"], a["ngf"], use_bn=not a["no_bn"]).to(device)
     G.load_state_dict(ck["netG"])

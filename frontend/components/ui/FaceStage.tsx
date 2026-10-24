@@ -131,10 +131,10 @@ export const FaceStage: React.FC<FaceStageProps> = ({
                 type="button"
                 onClick={() => onOpenStudio(seed)}
                 className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-surface-elevated text-xs font-medium text-accent transition-colors cursor-pointer"
-                title="Open in Facial Math Studio"
+                title="Open seed preview"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
-                <span>Sculpt</span>
+                <span>View seed</span>
               </button>
             )}
           </div>

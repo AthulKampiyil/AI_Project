@@ -1,0 +1,15 @@
+{
+  "model_id": "celeba-w128-seed42-epoch20",
+  "private_inference_file": "weights/generator_celeba_w128_epoch20.pt",
+  "sha256": "2ff74879612ef83051b0f22ba642dd78006c4418763266740edf52ec735c110e",
+  "size_note": "Generator-only FP32 export; training-resume checkpoint and CelebA images are not included in Git.",
+  "source_run": "celeba_w128_seed42",
+  "source_epoch": 20,
+  "native_resolution": 64,
+  "latent_dim": 100,
+  "generator_width": 128,
+  "full_validation_fid": 20.68,
+  "matched_baseline_fid": 25.63,
+  "evaluation_images": 20260,
+  "license_note": "Trained on CelebA, which is restricted to non-commercial research; model artifact is kept private pending permission to redistribute."
+}

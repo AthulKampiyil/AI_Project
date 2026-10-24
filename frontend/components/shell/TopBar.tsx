@@ -12,7 +12,7 @@ export const TopBar: React.FC = () => {
   const pathname = usePathname();
 
   const getPageTitle = () => {
-    if (pathname.includes("/studio")) return "Facial Math Studio";
+    if (pathname.includes("/studio")) return "Seed Studio";
     if (pathname.includes("/morph")) return "Morphing Studio";
     if (pathname.includes("/match")) return "Photo Matcher";
     if (pathname.includes("/grid")) return "Classic Generator";

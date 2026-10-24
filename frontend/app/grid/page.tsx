@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useGridStore } from "@/store/useGridStore";
 import { fetchGrid } from "@/lib/api";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/GlassCard";
 import { FaceStage } from "@/components/ui/FaceStage";
+import { generateMockFaceSvg } from "@/lib/mockData";
 import {
   Grid as GridIcon,
   Lock,
@@ -15,7 +16,6 @@ import {
   ExternalLink,
   User,
 } from "lucide-react";
-import { generateMockFaceSvg } from "@/lib/mockData";
 
 export default function GridPage() {
   const router = useRouter();
@@ -34,30 +34,38 @@ export default function GridPage() {
   } = useGridStore();
 
   const [hoveredTileIndex, setHoveredTileIndex] = useState<number | null>(null);
+  const [error, setError] = useState("");
+  const isDemo = process.env.NEXT_PUBLIC_MOCK === "1";
 
-  const handleGenerate = async (n: 1 | 16) => {
+  const handleGenerate = useCallback(async (n: 1 | 16) => {
     setGridCount(n);
     setGenerating(true);
+    setError("");
     try {
       const activeSeed = seedLock ? lockedSeed : undefined;
       const res = await fetchGrid({ n, seed: activeSeed });
       setResult(res.image, res.seeds);
     } catch {
-      setGenerating(false);
+      setResult("", []);
+      setError("Could not generate faces. Check the connection and try again.");
     }
-  };
+  }, [seedLock, lockedSeed, setGridCount, setGenerating, setResult]);
 
   useEffect(() => {
-    if (!image) {
-      handleGenerate(16);
+    if (!image && !error) {
+      const timer = window.setTimeout(() => void handleGenerate(16), 0);
+      return () => window.clearTimeout(timer);
     }
-  }, []);
+  }, [handleGenerate, image, error]);
+
+  const shownImage = error ? "" : image;
+  const shownSeeds = error ? [] : seeds;
 
   const handleDownload = () => {
-    if (!image) return;
+    if (!image || error) return;
     const a = document.createElement("a");
     a.href = image;
-    a.download = `dcgan_grid_${gridCount}faces.png`;
+    a.download = `dcgan_grid_${gridCount}faces.${isDemo ? "svg" : "png"}`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -69,19 +77,20 @@ export default function GridPage() {
 
   return (
     <div className="space-y-6">
+      {error && <p role="alert" className="text-sm text-rose-600">{error}</p>}
       <PageHeader
         title="Classic Grid Generator"
-        subtitle="Sample random Gaussian noise vectors z ~ N(0, I) through the Radford generator. Click any tile to import its latent seed directly into the Facial Math Studio."
+        subtitle="Sample random Gaussian noise vectors z ~ N(0, I) through the DCGAN generator. Click a tile to preview its seed in Seed Studio."
         badge="Monte Carlo Sampling"
       >
         <button
           type="button"
           onClick={handleDownload}
-          disabled={!image}
+          disabled={!image || !!error || (isDemo && gridCount === 16)}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-elevated hover:bg-surface-hover border border-border-subtle text-xs font-mono text-text-primary transition-colors disabled:opacity-40 cursor-pointer shadow-xs"
         >
           <Download className="w-3.5 h-3.5 text-text-muted" />
-          <span>Save PNG</span>
+          <span>{isDemo && gridCount === 16 ? "Demo tiles · no composite download" : isDemo ? "Save demo SVG" : "Save PNG"}</span>
         </button>
       </PageHeader>
 
@@ -92,14 +101,14 @@ export default function GridPage() {
             {gridCount === 1 ? (
               <div className="max-w-sm w-full space-y-3">
                 <FaceStage
-                  src={image}
+                  src={shownImage}
                   loading={isGenerating}
                   label="PORTRAIT"
-                  seed={seeds[0]}
+                  seed={shownSeeds[0]}
                   onOpenStudio={handleTileClick}
                 />
                 <div className="text-center text-xs font-mono text-text-muted">
-                  Seed: #{seeds[0] ?? 42} · Single Radford Latent Sample
+                  Seed: #{shownSeeds[0] ?? "—"} · Single Radford Latent Sample
                 </div>
               </div>
             ) : (
@@ -107,8 +116,7 @@ export default function GridPage() {
                 {/* 4x4 Interactive Mosaic */}
                 <div className="grid grid-cols-4 gap-2.5 p-2 rounded-xl bg-surface-elevated border border-border-subtle">
                   {Array.from({ length: 16 }, (_, idx) => {
-                    const currentSeed = seeds[idx] ?? (42 + idx * 37);
-                    const tileImg = generateMockFaceSvg(currentSeed, {}, 128);
+                    const currentSeed = shownSeeds[idx];
                     const isHovered = hoveredTileIndex === idx;
 
                     return (
@@ -116,36 +124,35 @@ export default function GridPage() {
                         key={`tile-${idx}`}
                         onMouseEnter={() => setHoveredTileIndex(idx)}
                         onMouseLeave={() => setHoveredTileIndex(null)}
-                        onClick={() => handleTileClick(currentSeed)}
-                        className={`group relative aspect-square rounded-lg overflow-hidden border cursor-pointer transition-all duration-100 ${
+                        onClick={() => currentSeed !== undefined && handleTileClick(currentSeed)}
+                        className={`group relative aspect-square rounded-lg overflow-hidden border ${currentSeed === undefined ? "" : "cursor-pointer"} transition-all duration-100 ${
                           isHovered
                             ? "border-accent scale-105 z-10 shadow-md ring-2 ring-accent/20"
                             : "border-border-subtle hover:border-border-strong bg-surface"
                         }`}
-                        title={`Click to open Seed #${currentSeed} in Facial Math Studio`}
+                        title={currentSeed === undefined ? "Waiting for generated face" : `Open seed #${currentSeed} in Seed Studio`}
                       >
-                        <img
-                          src={tileImg}
-                          alt={`Seed ${currentSeed}`}
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center text-center p-1 transition-opacity">
+                        {shownImage && (isDemo
+                          ? <img src={generateMockFaceSvg(currentSeed ?? 0, {}, 128)} alt={`Demo face, seed ${currentSeed}`} className="w-full h-full object-cover" />
+                          : <div role="img" aria-label={`Generated face, seed ${currentSeed}`} className="w-full h-full" style={{ backgroundImage: `url(${shownImage})`, backgroundSize: "400% 400%", backgroundPosition: `${(idx % 4) * 100 / 3}% ${Math.floor(idx / 4) * 100 / 3}%` }} />)}
+                        {!shownImage && <span className="absolute inset-0 flex items-center justify-center text-[10px] text-text-muted">{error ? "Generation failed" : "No image"}</span>}
+                        {currentSeed !== undefined && <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center text-center p-1 transition-opacity">
                           <ExternalLink className="w-3.5 h-3.5 text-white mb-1" />
                           <span className="text-[10px] font-mono text-white font-semibold">
                             #{currentSeed}
                           </span>
                           <span className="text-[9px] text-gray-300 font-mono">
-                            Sculpt
+                            Open Studio
                           </span>
-                        </div>
+                        </div>}
                       </div>
                     );
                   })}
                 </div>
 
                 <div className="flex items-center justify-between text-xs font-mono text-text-muted px-2">
-                  <span>Hover to reveal seed · Click to sculpt</span>
-                  <span className="text-accent font-medium">4×4 Matrix (16 Faces)</span>
+                  <span>Hover to reveal seed · Click to open in Studio</span>
+                  <span className="text-accent font-medium">{isDemo ? "DEMO · 4×4 samples" : "4×4 Matrix (16 Faces)"}</span>
                 </div>
               </div>
             )}

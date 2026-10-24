@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  SlidersHorizontal,
+  Hash,
   Film,
   Camera,
   Grid,
@@ -19,9 +19,9 @@ import { BrandLogo } from "@/components/shell/BrandLogo";
 const NAV_ITEMS = [
   {
     path: "/studio",
-    label: "Facial Math",
-    icon: SlidersHorizontal,
-    badge: "Vector Ops",
+    label: "Seed Studio",
+    icon: Hash,
+    badge: "Previews",
   },
   {
     path: "/morph",

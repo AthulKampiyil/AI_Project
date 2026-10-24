@@ -2,14 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import { fetchResearchResults, ResultsResponse, ExperimentItem, PlotItem } from "@/lib/api";
-import { MOCK_LOSS_CURVES } from "@/lib/mockData";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/GlassCard";
 import { MetricCard } from "@/components/ui/MetricCard";
 import { Tooltip } from "@/components/ui/Tooltip";
 import {
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -33,24 +30,18 @@ import {
 export default function LabPage() {
   const [data, setData] = useState<ResultsResponse | null>(null);
   const [selectedExperiment, setSelectedExperiment] = useState<string>("celeba_baseline");
-  const [useEma, setUseEma] = useState<boolean>(false);
   const [sortField, setSortField] = useState<keyof ExperimentItem>("fid");
   const [sortAsc, setSortAsc] = useState<boolean>(true);
   const [activeLightboxPlot, setActiveLightboxPlot] = useState<PlotItem | null>(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    fetchResearchResults().then((res) => setData(res));
+    fetchResearchResults().then((res) => setData(res)).catch(() => setError("Could not load research results. Check the connection and try again."));
   }, []);
 
   const experiments = data?.experiments || [];
   const plots = data?.plots || [];
-  const kpis = data?.kpis || {
-    best_fid: 23.95,
-    total_epochs: 95,
-    avg_sec_per_epoch: 211.5,
-    params_g: "3,576,704",
-    params_d: "2,765,568",
-  };
+  const kpis = data?.kpis;
 
   // Sort experiments
   const sortedExperiments = [...experiments].sort((a, b) => {
@@ -91,12 +82,14 @@ export default function LabPage() {
         subtitle="Empirical benchmarking of Radford et al. (2015) DCGAN architecture across learning rates, batch sizes, Batch Normalization ablations, and optimizer momentum."
         badge="Empirical Study"
       />
+      {error && <p role="alert" className="text-sm text-rose-600">{error}</p>}
+      <p className="rounded-lg border border-border-subtle bg-surface-elevated px-3 py-2 text-xs text-text-muted">The results below are historical training benchmarks, not live measurements for the currently loaded model.</p>
 
       {/* 1. KPI Row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <MetricCard
           label="Best CelebA FID"
-          value={kpis.best_fid}
+          value={kpis?.best_fid ?? "—"}
           unit="score"
           delta={5.9}
           deltaLabel="vs baseline"
@@ -104,13 +97,13 @@ export default function LabPage() {
         />
         <MetricCard
           label="Total Epochs Trained"
-          value={kpis.total_epochs}
+          value={kpis?.total_epochs ?? "—"}
           unit="epochs"
           delta={0}
         />
         <MetricCard
           label="Mean Epoch Runtime"
-          value={kpis.avg_sec_per_epoch}
+          value={kpis?.avg_sec_per_epoch ?? "—"}
           unit="sec"
           delta={0}
         />
@@ -130,84 +123,14 @@ export default function LabPage() {
               <div className="flex items-center gap-2">
                 <Activity className="w-4 h-4 text-accent" />
                 <h3 className="text-sm font-semibold text-text-primary">
-                  Adversarial Loss Equilibrium (L_D vs. L_G)
+                  Historical Adversarial Loss (L_D vs. L_G)
                 </h3>
               </div>
 
-              {/* EMA Smoothing Toggle */}
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] font-mono text-text-muted">
-                  EMA Smooth
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setUseEma(!useEma)}
-                  className={`w-8 h-4.5 rounded-full transition-colors relative p-0.5 cursor-pointer ${
-                    useEma ? "bg-accent" : "bg-surface-elevated border border-border-strong"
-                  }`}
-                >
-                  <div
-                    className={`w-3.5 h-3.5 rounded-full bg-white transition-transform shadow-xs ${
-                      useEma ? "translate-x-3.5" : "translate-x-0"
-                    }`}
-                  />
-                </button>
-              </div>
             </div>
 
-            <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={MOCK_LOSS_CURVES} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" opacity={0.6} />
-                  <XAxis
-                    dataKey="epoch"
-                    stroke="var(--text-muted)"
-                    fontSize={11}
-                    tickLine={false}
-                    label={{ value: "Epoch", position: "insideBottomRight", offset: -5, fill: "var(--text-muted)", fontSize: 10 }}
-                  />
-                  <YAxis stroke="var(--text-muted)" fontSize={11} tickLine={false} />
-                  <RechartsTooltip
-                    contentStyle={{
-                      backgroundColor: "var(--bg-surface)",
-                      borderColor: "var(--border-subtle)",
-                      borderRadius: "8px",
-                      fontSize: "12px",
-                      fontFamily: "monospace",
-                      color: "var(--text-primary)",
-                      boxShadow: "var(--shadow-card)",
-                    }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey={useEma ? "loss_d_ema" : "loss_d"}
-                    name="Loss D (Discriminator)"
-                    stroke="var(--accent-secondary)"
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey={useEma ? "loss_g_ema" : "loss_g"}
-                    name="Loss G (Generator)"
-                    stroke="var(--accent)"
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="flex items-center justify-between text-[11px] font-mono text-text-muted pt-1">
-              <div className="flex items-center gap-4">
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-sky-500" /> Loss D
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-accent" /> Loss G
-                </span>
-              </div>
-              <span>CelebA Baseline 25 Epochs</span>
+            <div className="h-64 w-full flex items-center justify-center rounded-lg border border-dashed border-border-subtle text-center text-sm text-text-muted">
+              Training loss curves are not available from this results endpoint.
             </div>
           </Card>
         </div>

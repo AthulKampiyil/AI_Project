@@ -26,15 +26,28 @@ Radford, A., Metz, L., & Chintala, S. (2015). "Unsupervised Representation Learn
 
 *Note: FID for ffhq_baseline is measured against FFHQ images and is not directly comparable to the CelebA runs.*
 
+### New held-out CelebA comparison
+
+Using the same 182,339-image training split, 20,260-image validation split, batch 64, AMP, seed 42, and evaluation seed 123, the best checkpoints were:
+
+| Run | Width (G/D) | Best epoch | FID on 10,000 validation images | FID on all 20,260 |
+|---|---:|---:|---:|---:|
+| `celeba_base_bs64_seed42` | 64 / 64 | 10 | 27.05 | 25.63 |
+| `celeba_w128_seed42` | 128 / 128 | 20 | **21.98** | **20.68** |
+
+Lower FID is better. The wider model improved full-validation FID by 4.95 in this single-seed matched comparison; it remains a 64×64 DCGAN and can still produce artifacts. These scores are not directly comparable to the historical table above, which used non-held-out images. The two selected checkpoints and evaluation details are in `checkpoints/` (local, gitignored) and `results/celeba_*_eval.json`.
+
 - FFHQ dataset contains 52,001 images.
 - exp_w128 changed both the width and the batch size (64), so its gain over base_10ep cannot be credited to width alone; compare it with exp_bs64.
 - Every result is a single run with one random seed, so small FID differences (a few points) may be noise.
 
 ## Latent Studio — Next.js & FastAPI Web App
 
-"The Latent Observatory" is a state-of-the-art Next.js web application replacing the legacy Gradio demo with a scientific dark-mode user interface, Radix/Tailwind precision dials, Framer Motion springs, interactive Recharts diagnostics, and Three.js 3D hypersphere visualization.
+"The Latent Observatory" is a Next.js interface backed by FastAPI. Grid sampling and interpolation use the selected DCGAN; Photo Matcher computes an approximate projection into its latent space, **not a same-person reconstruction**. Seed Studio browses generated seeds. Semantic sliders are absent because pilot directions changed unintended features and did not meet the release bar for reliable editing.
 
 ### Running the Fullstack Application
+
+From a clean checkout, create a Python environment, install a compatible PyTorch/torchvision pair from the [official selector](https://pytorch.org/get-started/locally/), then run `python -m pip install -r requirements.txt`. Install frontend dependencies with `npm ci` inside `frontend/`. The shipped legacy model runs without the private new checkpoint; the new model requires its separately supplied export.
 
 #### 1. Start the High-Performance FastAPI Backend
 ```bash
@@ -42,6 +55,15 @@ Radford, A., Metz, L., & Chintala, S. (2015). "Unsupervised Representation Learn
 python main.py
 # Server runs on http://localhost:8000 (API docs available at /docs)
 ```
+
+The public branch does **not** distribute the newly trained CelebA weights. If you already have the private training checkpoint, export just its generator (the source must be trusted):
+```bash
+python export_model.py --ckpt checkpoints/celeba_w128_seed42/epoch_020.pt --out weights/generator_celeba_w128_epoch20.pt
+sha256sum weights/generator_celeba_w128_epoch20.pt
+DCGAN_CKPT=weights/generator_celeba_w128_epoch20.pt python main.py
+```
+If the private generator-only file was supplied separately, place it at that `weights/` path and compare its SHA-256 with `results/model_manifest.json` before launching. No network download occurs at startup. `/api/health` reports the loaded model ID; an invalid explicit path fails instead of silently serving another model. To roll back, stop the backend and run `python main.py` without `DCGAN_CKPT`. The previous attribute directions were not validated for this release and are not exposed as reliable controls. Output is still native 64×64; displayed 384×384 portraits are resized and sharpened, not higher-resolution generation.
+Keep `NEXT_PUBLIC_MOCK` unset (or not `1`) in the frontend to display real backend faces; mock mode is explicitly labeled as a demo.
 
 #### 2. Start the Next.js Frontend
 ```bash
@@ -55,10 +77,7 @@ npm run dev
 You can run the web app in pure mock mode with procedural visual SVG face generation:
 ```bash
 cd frontend
-# Set mock environment variable
-set NEXT_PUBLIC_MOCK=1    # On Windows cmd
-$env:NEXT_PUBLIC_MOCK="1" # On PowerShell
-npm run dev
+NEXT_PUBLIC_MOCK=1 npm run dev
 ```
 
 ---
@@ -68,12 +87,9 @@ If desired, the original Gradio demo can still be launched via:
 ```bash
 python demo_app.py --ckpt weights/generator_celeba_dcgan.pt
 ```
-   The upgraded lab includes 4 dedicated research modules:
-   - **🎭 Facial Math Studio**: Real-time facial expression sculpting using closed-form latent space factorization (SeFa). Control smile intensity, lighting/pose, age, and gender structure via continuous sliders.
-   - **🎬 Morphing Studio**: Smooth face-to-face transformation animations with comparative high-dimensional hypersphere geometry (Spherical Linear Interpolation `Slerp` vs. Euclidean `Lerp`).
-   - **🪞 Photo Matcher (GAN Inversion)**: Test-time backpropagation optimization solving $z^* = \arg\min_z \|G(z) - x\|^2$ to reconstruct uploaded real photos into the DCGAN's learned manifold.
-   - **🎲 Classic Grid Generator**: Single-click 1-face and 16-face grid generator.
-3. Or generate a grid of faces from the command line:
+The supported app includes seed sampling, interpolation, and approximate latent projection of uploaded portraits. Pixel MSE reduction does not measure identity accuracy. The old Gradio script is a historical experiment, **not** the supported interface for this branch; its legacy semantic vectors have not passed the new model's validation checks.
+
+Generate a grid from the command line:
    ```bash
    python generate.py --ckpt weights/generator_celeba_dcgan.pt --mode grid --out results/generated.png
    ```
@@ -82,25 +98,27 @@ python demo_app.py --ckpt weights/generator_celeba_dcgan.pt
 
 The datasets used for training are **NOT** included in this repository.
 
-To download the datasets, you will need a Kaggle API token (`kaggle.json`). You can find the datasets here:
+KaggleHub may request credentials for some downloads. Keep any Kaggle token outside this repository. Dataset sources:
 - [CelebA Dataset](https://www.kaggle.com/datasets/jessicali9530/celeba-dataset)
 - [FFHQ Dataset](https://www.kaggle.com/datasets/arnaud58/flickrfaceshq-dataset-ffhq)
 
 1. Download and prepare the dataset (e.g., CelebA):
-   ```bash
-   python prepare_data.py --dataset celeba
-   ```
+    ```bash
+    python prepare_data.py --dataset celeba
+    ```
+   This writes `data/celeba_train_64.npy` and held-out `data/celeba_val_64.npy`.
 2. Train the baseline model:
-   ```bash
-   python train.py --run-name celeba_baseline --epochs 25
-   ```
+    ```bash
+    python train.py --run-name celeba_baseline_v2 --epochs 25
+    ```
+   Evaluate new runs against the held-out set with `python fid_eval.py --ckpt checkpoints/celeba_baseline_v2/latest.pt`.
 
 ## Repository Structure
 
 - `.gitignore`: Git exclusion file.
 - `README.md`: This project documentation.
 - `requirements.txt`: Python package dependencies.
-- `latent_ops.py`: Latent operations module (Slerp/Lerp interpolation, closed-form semantic factorization, and GAN inversion).
+- `latent_ops.py`: Latent operations module (Slerp/Lerp interpolation and approximate GAN inversion).
 - `demo_app.py`: Interactive Gradio research laboratory for facial math, morphing, and GAN inversion.
 - `check_gpu.py`: Utility to verify CUDA availability.
 - `fid_eval.py`: Script to calculate the Frechet Inception Distance (FID).
@@ -109,6 +127,8 @@ To download the datasets, you will need a Kaggle API token (`kaggle.json`). You 
 - `prepare_data.py`: Script to download and preprocess datasets from Kaggle.
 - `plot_results.py`: Utility for plotting loss curves and result comparisons.
 - `train.py`: Main script to train the DCGAN model.
+- `export_model.py`: Export only generator weights from a trusted training checkpoint.
+- `calibrate_directions.py`: Offline CLIP-proxy experiment; its tentative outputs are **not** enabled in the app.
 - `nn_check.py`: Nearest-neighbor check script.
 - `run_experiments.sh` / `run_tasks.sh`: Shell scripts used for running batch experiments.
 - `finish_up.py` / `wrap_up.py`: Utility scripts for final evaluations.
@@ -122,10 +142,12 @@ To download the datasets, you will need a Kaggle API token (`kaggle.json`). You 
 - Only a single seed was used per experiment.
 - The model may occasionally generate distorted or artifacted faces.
 - There is a noticeable celebrity-photo bias due to the nature of the training datasets.
+- This unconditional 64×64 GAN is not a reliable identity-preserving photo reconstruction or semantic face editor. Photo Matcher is an approximate pixel-fit projection with no same-person guarantee.
+- The CLIP-proxy calibration pilot used 1,024 fit seeds and 128 held-out latent seeds. A visual review of 48 triplets per candidate found smile and hair-lightness changes on roughly 35–40 rows, but also identity/skin-tone drift and artifacts. Pose and lighting were less reliable. No semantic directions are shipped or activated; the optional CLIP weights are not bundled.
 
 ## Notes
 
 - **CelebA is for non-commercial research use only.**
-- The weights provided were trained on the CelebA dataset; use them for research and education purposes only.
+- The repository's MIT code license does not override CelebA's dataset terms. The new checkpoint and its derived calibration artifact are kept private pending distribution permission. The legacy weights already in the repository are for research/education only.
 - All faces generated by this model are synthetic.
 - **Security Note:** Only load `.pt` files from sources you trust.

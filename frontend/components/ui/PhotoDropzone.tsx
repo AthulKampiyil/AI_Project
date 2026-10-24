@@ -71,7 +71,7 @@ export const PhotoDropzone: React.FC<PhotoDropzoneProps> = ({
               <div className="text-[10px] font-mono text-text-muted mt-0.5 flex items-center gap-1">
                 <CheckCircle2 className="w-3 h-3 text-emerald-500" />
                 <span>
-                  {selectedFile ? (selectedFile.size / 1024).toFixed(0) : "0"} KB · In-Memory
+                  {selectedFile ? (selectedFile.size / 1024).toFixed(0) : "0"} KB · Selected locally
                 </span>
               </div>
             </div>
@@ -130,7 +130,7 @@ export const PhotoDropzone: React.FC<PhotoDropzoneProps> = ({
       )}
 
       <div className="text-[10px] text-text-muted font-mono leading-tight px-1">
-        * Note: Photos are processed strictly in memory and are not stored.
+        Selecting a photo keeps it on this device until you create a projection. Then it is sent to the processing service; its storage practices depend on that service.
       </div>
     </div>
   );

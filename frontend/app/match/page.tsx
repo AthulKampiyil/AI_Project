@@ -12,7 +12,6 @@ import {
   ShieldCheck,
   Target,
 } from "lucide-react";
-import confetti from "canvas-confetti";
 
 export default function MatchPage() {
   const {
@@ -32,44 +31,33 @@ export default function MatchPage() {
     reset,
   } = useMatchStore();
 
-  const [lossHistory, setLossHistory] = useState<number[]>([
-    0.081, 0.052, 0.034, 0.025, 0.019,
-  ]);
+  const [error, setError] = useState("");
 
   const handleRunInversion = async () => {
     if (!file) return;
+    setError("");
     setOptimizing(true);
     try {
       const res = await invertFacePhoto(file, iterations);
       setResult(res.target, res.twin, res.mseInitial, res.mseFinal);
-      // Simulate synthetic progressive loss decay curve for sparkline
-      const generatedCurve = Array.from({ length: 6 }, (_, idx) => {
-        const decay = Math.exp(-idx * 0.7);
-        return parseFloat((res.mseFinal + (res.mseInitial - res.mseFinal) * decay).toFixed(4));
-      });
-      setLossHistory(generatedCurve);
-
-      // Subtle celebration if error reduction is high
-      if (res.mseInitial > res.mseFinal) {
-        confetti({
-          particleCount: 30,
-          spread: 50,
-          origin: { y: 0.7 },
-          colors: ["#6366F1", "#0284C7", "#10B981"],
-        });
-      }
-    } catch {
+    } catch (caughtError) {
       setOptimizing(false);
+      setError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : "Could not create the projection. Please try again."
+      );
     }
   };
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Photo Matcher (GAN Inversion)"
-        subtitle="Reverse-engineer an uploaded portrait into the DCGAN latent space through multi-candidate sampling and test-time gradient backpropagation on z."
-        badge="Gradient Optimization"
+        title="Photo Matcher"
+        subtitle="Create an approximate DCGAN projection of a processed portrait. It is a visual reconstruction, not a same-person match."
+        badge="Approximate projection"
       />
+      {error && <p role="alert" className="text-sm text-rose-600">{error}</p>}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left: Reconstructed Stage & Diagnostics */}
@@ -79,35 +67,35 @@ export default function MatchPage() {
               <div className="space-y-2">
                 <FaceStage
                   src={targetImage || previewUrl || undefined}
-                  label="CROPPED TARGET"
+                  label="PROCESSED TARGET"
                   loading={isOptimizing}
                 />
                 <div className="text-center text-[11px] font-mono text-text-muted">
-                  Input Real Face (Preprocessed 64×64)
+                  Input portrait · processed to 64×64
                 </div>
               </div>
 
               <div className="space-y-2">
                 <FaceStage
                   src={twinImage || undefined}
-                  label="RECONSTRUCTED TWIN"
+                  label="APPROXIMATE PROJECTION"
                   loading={isOptimizing}
                 />
                 <div className="text-center text-[11px] font-mono text-accent font-medium">
-                  Optimal Latent Reconstruction G(z*)
+                  Generated from a bounded latent-space search
                 </div>
               </div>
             </div>
 
-            {/* Note banner on resolution and synthetic representation */}
+            {/* Keep the projection's limitations beside the results. */}
             <div className="mt-6 p-3.5 rounded-xl bg-surface-elevated border border-border-subtle flex items-start gap-3">
               <ShieldCheck className="w-4 h-4 text-accent shrink-0 mt-0.5" />
               <div className="text-xs text-text-muted space-y-0.5">
                 <p className="text-text-primary font-medium">
-                  Scientific Approximation Notice
+                  What this result means
                 </p>
                 <p className="leading-relaxed">
-                  A 64×64 DCGAN model captures coarse semantic facial structures (pose, lighting, expression, hair contour) rather than millimeter facial biometric identity. Uploaded images are strictly computed in ephemeral GPU memory and never persisted.
+                  This low-resolution DCGAN projection may reflect broad visual features, but it does not identify or verify a person. It can look substantially different from the input, and a lower pixel MSE does not mean a more accurate identity match.
                 </p>
               </div>
             </div>
@@ -116,21 +104,20 @@ export default function MatchPage() {
           {/* Diagnostics Metrics Row */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <MetricCard
-              label="Initial Candidate MSE"
+              label="Initial pixel MSE"
               value={mseInitial.toFixed(4)}
-              unit="loss"
-              deltaLabel="initial error"
+              unit="pixel error"
+              deltaLabel="starting pixel error"
             />
             <MetricCard
-              label="Optimized Final MSE"
+              label="Final pixel MSE"
               value={mseFinal.toFixed(4)}
-              unit="loss"
+              unit="pixel error"
               delta={parseFloat(((mseInitial - mseFinal) * 100).toFixed(1))}
-              deltaLabel="gain"
-              sparklineData={lossHistory}
+              deltaLabel="pixel error change"
             />
             <MetricCard
-              label="Error Reduction"
+              label="Pixel MSE reduction"
               value={`${reductionPct}%`}
               delta={reductionPct}
               deltaLabel="reduction"
@@ -144,7 +131,7 @@ export default function MatchPage() {
           <Card className="p-5 space-y-5">
             <div className="flex items-center gap-2 border-b border-border-subtle pb-3 text-sm font-semibold text-text-primary">
               <Target className="w-4 h-4 text-accent" />
-              <span>Inversion Setup</span>
+              <span>Projection setup</span>
             </div>
 
             {/* Dropzone */}
@@ -178,6 +165,10 @@ export default function MatchPage() {
               </div>
             </div>
 
+            <p className="text-[11px] leading-relaxed text-text-muted">
+              This creates an approximate visual projection, not a same-person match. It may look unlike the processed target; pixel MSE measures pixel difference only, not identity accuracy.
+            </p>
+
             {/* Invert Button */}
             <button
               type="button"
@@ -187,7 +178,7 @@ export default function MatchPage() {
             >
               <Target className="w-3.5 h-3.5" />
               <span>
-                {isOptimizing ? "Optimizing Latent Vector..." : "Find Synthetic Twin (Invert)"}
+                {isOptimizing ? "Creating projection…" : "Create approximate projection"}
               </span>
             </button>
           </Card>

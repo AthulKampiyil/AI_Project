@@ -1,5 +1,6 @@
 import argparse
 import csv
+import hashlib
 import os
 import random
 import time
@@ -12,9 +13,49 @@ from torchvision.utils import save_image
 from models import Generator, Discriminator, weights_init
 
 
+def _rng_state():
+    numpy_state = np.random.get_state()
+    return {
+        "python": random.getstate(),
+        "numpy": (numpy_state[0], numpy_state[1].tolist(), *numpy_state[2:]),
+        "torch": torch.get_rng_state(),
+        "cuda": [state.cpu() for state in torch.cuda.get_rng_state_all()]
+        if torch.cuda.is_available() else [],
+    }
+
+
+def _restore_rng_state(state):
+    random.setstate(state["python"])
+    numpy_state = state["numpy"]
+    np.random.set_state((numpy_state[0], np.asarray(numpy_state[1], dtype=np.uint32),
+                         *numpy_state[2:]))
+    torch.set_rng_state(state["torch"].cpu())
+    if state["cuda"]:
+        torch.cuda.set_rng_state_all([rng.cpu() for rng in state["cuda"]])
+
+
+def _data_fingerprint(path):
+    digest = hashlib.sha256()
+    with open(path, "rb") as data_file:
+        for chunk in iter(lambda: data_file.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _resume_config(args, data_fingerprint):
+    return {
+        "data": os.path.abspath(args.data),
+        "data_sha256": data_fingerprint,
+        **{key: getattr(args, key) for key in (
+            "batch_size", "lr", "beta1", "nz", "ngf", "ndf", "no_bn",
+            "label_smooth", "amp", "seed", "max_images",
+        )},
+    }
+
+
 def get_args():
     p = argparse.ArgumentParser()
-    p.add_argument("--data", default="data/celeba_64.npy")
+    p.add_argument("--data", default="data/celeba_train_64.npy")
     p.add_argument("--run-name", default="celeba_baseline")
     p.add_argument("--epochs", type=int, default=25)
     p.add_argument("--batch-size", type=int, default=128)
@@ -57,6 +98,7 @@ def main():
     data = torch.from_numpy(np.load(args.data)).permute(0, 3, 1, 2).contiguous()
     if args.max_images:
         data = data[: args.max_images]
+    data_fingerprint = _data_fingerprint(args.data)
     n = data.shape[0]
     bs = args.batch_size
     steps_per_epoch = n // bs
@@ -77,15 +119,29 @@ def main():
     fixed_noise = torch.randn(64, args.nz, 1, 1, device=device)
     start_epoch = 0
     latest = f"{ckpt_dir}/latest.pt"
-    if args.resume and os.path.exists(latest):
+    if args.resume:
+        if not os.path.exists(latest):
+            raise SystemExit(f"Cannot resume: checkpoint not found: {latest}")
         ck = torch.load(latest, map_location=device)
+        config = _resume_config(args, data_fingerprint)
+        saved_config = ck.get("resume_config")
+        if saved_config is None or saved_config != config:
+            raise SystemExit("Cannot resume: checkpoint configuration is missing or incompatible "
+                             "(data, seed, or training hyperparameters changed).")
         netG.load_state_dict(ck["netG"])
         netD.load_state_dict(ck["netD"])
         optG.load_state_dict(ck["optG"])
         optD.load_state_dict(ck["optD"])
+        scaler_g.load_state_dict(ck["scaler_g"])
+        scaler_d.load_state_dict(ck["scaler_d"])
         fixed_noise = ck["fixed_noise"].to(device)
         start_epoch = ck["epoch"]
+        _restore_rng_state(ck["rng_state"])
         print(f"Resumed from epoch {start_epoch}")
+    elif (os.path.exists(log_dir + "/losses.csv")
+          or any(name.endswith(".pt") for name in os.listdir(ckpt_dir))):
+        raise SystemExit(f"Run already has checkpoint/log data: {ckpt_dir}, {log_dir}. "
+                         "Use --resume or choose a fresh --run-name.")
 
     real_label = 1.0 - args.label_smooth
 
@@ -101,8 +157,11 @@ def main():
             "epoch": epoch,
             "netG": netG.state_dict(), "netD": netD.state_dict(),
             "optG": optG.state_dict(), "optD": optD.state_dict(),
+            "scaler_g": scaler_g.state_dict(), "scaler_d": scaler_d.state_dict(),
             "fixed_noise": fixed_noise.cpu(),
             "args": vars(args),
+            "resume_config": _resume_config(args, data_fingerprint),
+            "rng_state": _rng_state(),
         }, path)
 
     for epoch in range(start_epoch, args.epochs):

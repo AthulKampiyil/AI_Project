@@ -3,6 +3,8 @@ __pycache__/
 *.pyc
 data/
 checkpoints/
+weights/generator_celeba_w128_epoch20.pt
+weights/attribute_vectors_w128_epoch20.pt
 samples/
 backup/
 backup.zip

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -25,12 +25,6 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   sparklineData,
   className,
 }) => {
-  const [displayValue, setDisplayValue] = useState(value);
-
-  useEffect(() => {
-    setDisplayValue(value);
-  }, [value]);
-
   const isPositiveDelta = delta !== undefined && delta > 0;
   const isZeroDelta = delta !== undefined && delta === 0;
 
@@ -73,7 +67,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
 
       <div className="mt-2 flex items-baseline gap-1.5">
         <span className="text-2xl font-bold font-mono tracking-tight text-text-primary">
-          {displayValue}
+          {value}
         </span>
         {unit && <span className="text-xs font-mono text-text-muted">{unit}</span>}
       </div>
