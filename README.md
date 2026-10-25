@@ -43,7 +43,7 @@ Lower FID is better. The wider model improved full-validation FID by 4.95 in thi
 
 ## Latent Studio — Next.js & FastAPI Web App
 
-"The Latent Observatory" is a Next.js interface backed by FastAPI. Grid sampling and interpolation use the selected DCGAN; Photo Matcher computes an approximate projection into its latent space, **not a same-person reconstruction**. Seed Studio browses generated seeds. Semantic sliders are absent because pilot directions changed unintended features and did not meet the release bar for reliable editing.
+"The Latent Observatory" is a Next.js interface backed by FastAPI. Grid sampling and interpolation use the selected DCGAN; Photo Matcher computes an approximate projection into its latent space, **not a same-person reconstruction**. Seed Studio browses generated seeds. With the matching private directions artifact, it also offers **experimental** smile-tendency and hair-lightness sliders; edits can vary by seed and change other facial features. Pose and lighting controls are not supported.
 
 ### Running the Fullstack Application
 
@@ -56,13 +56,14 @@ python main.py
 # Server runs on http://localhost:8000 (API docs available at /docs)
 ```
 
-The public branch does **not** distribute the newly trained CelebA weights. If you already have the private training checkpoint, export just its generator (the source must be trusted):
+The public branch does **not** distribute the newly trained CelebA weights. If you have the private training checkpoint but **not** the generator-only file yet, export it once from the trusted source; skip this first command if the output already exists:
 ```bash
 python export_model.py --ckpt checkpoints/celeba_w128_seed42/epoch_020.pt --out weights/generator_celeba_w128_epoch20.pt
 sha256sum weights/generator_celeba_w128_epoch20.pt
-DCGAN_CKPT=weights/generator_celeba_w128_epoch20.pt python main.py
+DCGAN_CKPT=weights/generator_celeba_w128_epoch20.pt \
+DCGAN_DIRECTIONS=weights/attribute_vectors_w128_epoch20.pt python main.py
 ```
-If the private generator-only file was supplied separately, place it at that `weights/` path and compare its SHA-256 with `results/model_manifest.json` before launching. No network download occurs at startup. `/api/health` reports the loaded model ID; an invalid explicit path fails instead of silently serving another model. To roll back, stop the backend and run `python main.py` without `DCGAN_CKPT`. The previous attribute directions were not validated for this release and are not exposed as reliable controls. Output is still native 64×64; displayed 384×384 portraits are resized and sharpened, not higher-resolution generation.
+Both private files must be supplied separately; verify their SHA-256 checksums against `results/model_manifest.json`. The new directions are tied to the exact generator export—old vectors are never reused. Without `DCGAN_DIRECTIONS`, the new checkpoint remains a seed browser. `/api/health` reports whether experimental edits loaded; a mismatched explicit artifact fails closed. To roll back, stop the backend and run `python main.py` without either environment variable. No network download occurs at startup. Output is still native 64×64; displayed 384×384 portraits are resized and sharpened, not higher-resolution generation.
 Keep `NEXT_PUBLIC_MOCK` unset (or not `1`) in the frontend to display real backend faces; mock mode is explicitly labeled as a demo.
 
 #### 2. Start the Next.js Frontend
@@ -143,7 +144,7 @@ KaggleHub may request credentials for some downloads. Keep any Kaggle token outs
 - The model may occasionally generate distorted or artifacted faces.
 - There is a noticeable celebrity-photo bias due to the nature of the training datasets.
 - This unconditional 64×64 GAN is not a reliable identity-preserving photo reconstruction or semantic face editor. Photo Matcher is an approximate pixel-fit projection with no same-person guarantee.
-- The CLIP-proxy calibration pilot used 1,024 fit seeds and 128 held-out latent seeds. A visual review of 48 triplets per candidate found smile and hair-lightness changes on roughly 35–40 rows, but also identity/skin-tone drift and artifacts. Pose and lighting were less reliable. No semantic directions are shipped or activated; the optional CLIP weights are not bundled.
+- The CLIP-proxy calibration used 1,024 fit seeds and 128 held-out latent seeds. Visual review of 48 triplets per candidate found smile and hair-lightness changes on roughly 35–40 rows, **not every seed**, with identity/skin-tone drift and artifacts. The opt-in private directions enable only those two experimental controls. Pose and lighting were less reliable and remain unavailable. CLIP weights and derived directions are not bundled in this public branch.
 
 ## Notes
 

@@ -4,6 +4,8 @@ import time
 import base64
 import json
 import threading
+import hashlib
+import math
 from typing import Optional, List
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -44,6 +46,8 @@ MODEL_ID: Optional[str] = None
 G = None
 NZ = 100
 MODEL_LOADED = False
+SCULPT_DIRECTIONS = None
+SCULPT_STRENGTH = None
 BENCHMARK_LATENCY_MS = 0.0
 MAX_INVERSION_UPLOAD_BYTES = 10 * 1024 * 1024
 MAX_INVERSION_PIXELS = 25_000_000
@@ -63,13 +67,40 @@ def get_latent_vector(seed: int) -> torch.Tensor:
 
 @app.on_event("startup")
 def load_model():
-    global G, NZ, MODEL_LOADED, BENCHMARK_LATENCY_MS, MODEL_ID
+    global G, NZ, MODEL_LOADED, BENCHMARK_LATENCY_MS, MODEL_ID, SCULPT_DIRECTIONS, SCULPT_STRENGTH
+    SCULPT_DIRECTIONS = None
+    SCULPT_STRENGTH = None
+    MODEL_LOADED = False
+    MODEL_ID = None
     try:
         print(f"Loading DCGAN generator on {device} from {CKPT_PATH}...")
         G, NZ = load_generator(CKPT_PATH, device)
         G.eval()
         G.requires_grad_(False)
         MODEL_LOADED = True
+
+        directions_path = os.environ.get("DCGAN_DIRECTIONS")
+        if directions_path:
+            with open(CKPT_PATH, "rb") as checkpoint:
+                checkpoint_hash = hashlib.sha256(checkpoint.read()).hexdigest()
+            artifact = torch.load(directions_path, map_location="cpu", weights_only=True)
+            if not isinstance(artifact, dict) or artifact.get("experimental") is not True:
+                raise ValueError("Invalid experimental directions artifact")
+            if artifact.get("model_sha256") != checkpoint_hash:
+                raise ValueError("Directions artifact checkpoint hash mismatch")
+            strength = artifact.get("strength")
+            vectors = artifact.get("directions")
+            if (not isinstance(strength, (int, float)) or not math.isfinite(strength)
+                    or strength <= 0 or strength > 1.5
+                    or not isinstance(vectors, dict) or set(vectors) != {"smile", "hair"}):
+                raise ValueError("Invalid experimental directions metadata")
+            for vector in vectors.values():
+                if (not isinstance(vector, torch.Tensor) or tuple(vector.shape) != (1, NZ, 1, 1)
+                        or not torch.isfinite(vector).all()
+                        or not torch.isclose(torch.linalg.vector_norm(vector.float()), torch.tensor(1.0), atol=1e-4, rtol=1e-4)):
+                    raise ValueError("Invalid experimental direction vector")
+            SCULPT_DIRECTIONS = {name: vector.to(device=device, dtype=torch.float32) for name, vector in vectors.items()}
+            SCULPT_STRENGTH = float(strength)
         
         # Benchmark single inference
         t0 = time.perf_counter()
@@ -85,6 +116,8 @@ def load_model():
         print(f"Error loading model weights: {e}")
         MODEL_LOADED = False
         MODEL_ID = None
+        SCULPT_DIRECTIONS = None
+        SCULPT_STRENGTH = None
 
 # Request / Response Schemas
 class SculptRequest(BaseModel):
@@ -141,7 +174,7 @@ def health():
         device=str(device),
         latencyMs=BENCHMARK_LATENCY_MS,
         modelId=MODEL_ID,
-        sculptAvailable=False,
+        sculptAvailable=MODEL_LOADED and SCULPT_DIRECTIONS is not None,
     )
 
 @app.post("/api/sculpt", response_model=SculptResponse)
@@ -149,7 +182,11 @@ def sculpt(req: SculptRequest):
     if not MODEL_LOADED:
         raise HTTPException(status_code=503, detail="Model weights not loaded")
 
-    if any((req.smile, req.pose, req.hair, req.light)):
+    if any(not math.isfinite(value) for value in (req.smile, req.hair)) or any(abs(value) > 1 for value in (req.smile, req.hair)):
+        raise HTTPException(status_code=422, detail="Smile and hair must be finite values in [-1, 1]")
+    if req.pose != 0 or req.light != 0:
+        raise HTTPException(status_code=422, detail="Pose and light sculpting are unsupported")
+    if (req.smile != 0 or req.hair != 0) and SCULPT_DIRECTIONS is None:
         raise HTTPException(status_code=422, detail="Semantic sculpting is unavailable for this model")
     
     with torch.no_grad():
@@ -157,10 +194,19 @@ def sculpt(req: SculptRequest):
         z_norm = float(torch.norm(base_z.view(-1)).item())
 
         base_img = latent_ops.tensor_to_pil(G(base_z)[0], size=(384, 384))
+        if req.smile == 0 and req.hair == 0:
+            sculpted_img = base_img
+        else:
+            delta = SCULPT_STRENGTH * (req.smile * SCULPT_DIRECTIONS["smile"] + req.hair * SCULPT_DIRECTIONS["hair"])
+            delta_norm = torch.linalg.vector_norm(delta)
+            if delta_norm > SCULPT_STRENGTH:
+                delta = delta * (SCULPT_STRENGTH / delta_norm)
+            edited_z = latent_ops.project_to_sphere(base_z + delta, base_z)
+            sculpted_img = latent_ops.tensor_to_pil(G(edited_z)[0], size=(384, 384))
 
     return SculptResponse(
         base=pil_to_base64_data_url(base_img),
-        sculpted=pil_to_base64_data_url(base_img),
+        sculpted=pil_to_base64_data_url(sculpted_img),
         zNorm=round(z_norm, 2)
     )
 

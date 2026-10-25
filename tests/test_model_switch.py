@@ -1,5 +1,7 @@
 import tempfile
 import unittest
+import hashlib
+import os
 from unittest import mock
 
 import torch
@@ -70,6 +72,60 @@ class ModelSwitchTests(unittest.TestCase):
             self.assertFalse(main.health().sculptAvailable)
             response = main.sculpt(main.SculptRequest(seed=7))
             self.assertEqual(response.base, response.sculpted)
+
+    def test_experimental_directions_load_and_enable_bounded_sculpting(self):
+        with tempfile.TemporaryDirectory() as directory:
+            checkpoint = os.path.join(directory, "generator.pt")
+            artifact_path = os.path.join(directory, "directions.pt")
+            with open(checkpoint, "wb") as output:
+                output.write(b"checkpoint bytes")
+            direction = torch.zeros(1, 100, 1, 1)
+            direction[0, 0, 0, 0] = 1
+            torch.save({
+                "model_sha256": hashlib.sha256(b"checkpoint bytes").hexdigest(),
+                "strength": 1.5,
+                "experimental": True,
+                "directions": {"smile": direction, "hair": direction.clone()},
+                "calibration": {},
+            }, artifact_path)
+            with (
+                mock.patch.object(main, "CKPT_PATH", checkpoint),
+                mock.patch.dict(os.environ, {"DCGAN_DIRECTIONS": artifact_path}),
+                mock.patch.object(main, "load_generator", return_value=(TinyGenerator(), 100)),
+                mock.patch.object(main, "BENCHMARK_LATENCY_MS", 0.0),
+            ):
+                main.load_model()
+                self.assertTrue(main.health().sculptAvailable)
+                zero = main.sculpt(main.SculptRequest(seed=42))
+                edited = main.sculpt(main.SculptRequest(seed=42, smile=0.5))
+                self.assertEqual(zero.base, zero.sculpted)
+                self.assertNotEqual(edited.base, edited.sculpted)
+                for values in ({"pose": 0.1}, {"light": -0.1}, {"smile": 1.01}, {"hair": -1.01}, {"smile": float("nan")}):
+                    with self.subTest(values=values), self.assertRaises(HTTPException) as error:
+                        main.sculpt(main.SculptRequest(seed=42, **values))
+                    self.assertEqual(error.exception.status_code, 422)
+
+    def test_explicit_direction_hash_mismatch_fails_closed(self):
+        with tempfile.TemporaryDirectory() as directory:
+            checkpoint = os.path.join(directory, "generator.pt")
+            artifact_path = os.path.join(directory, "directions.pt")
+            with open(checkpoint, "wb") as output:
+                output.write(b"checkpoint bytes")
+            direction = torch.zeros(1, 100, 1, 1)
+            direction[0, 0, 0, 0] = 1
+            torch.save({
+                "model_sha256": "wrong", "strength": 1.5, "experimental": True,
+                "directions": {"smile": direction, "hair": direction},
+            }, artifact_path)
+            with (
+                mock.patch.object(main, "CKPT_PATH", checkpoint),
+                mock.patch.dict(os.environ, {"DCGAN_DIRECTIONS": artifact_path}),
+                mock.patch.object(main, "load_generator", return_value=(TinyGenerator(), 100)),
+            ):
+                main.load_model()
+            self.assertFalse(main.health().weightsLoaded)
+            self.assertFalse(main.health().sculptAvailable)
+            self.assertIsNone(main.health().modelId)
 
     def test_inversion_freezes_generator_but_returns_pure_final_mse(self):
         generator = TinyGenerator()
