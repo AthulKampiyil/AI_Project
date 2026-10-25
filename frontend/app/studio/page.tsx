@@ -26,8 +26,10 @@ function StudioContent() {
   const setPreviewSeed = useCallback((value: number) => {
     setSmile(0);
     setHair(0);
+    setBaseImage("");
+    setResult("");
     setSeed(value);
-  }, [setSeed]);
+  }, [setResult, setSeed]);
 
   useEffect(() => {
     if (urlSeed !== null && urlSeed !== lastUrlSeed.current) {
@@ -54,16 +56,20 @@ function StudioContent() {
         setResult(sculptAvailable ? result.sculpted : result.base);
       }
     } catch (err: unknown) {
-      if ((err as Error)?.name !== "AbortError" && id === requestId.current) {
+      if (id === requestId.current) {
         setLoading(false);
-        setError("Could not load this preview. Check the connection and try again.");
+        if ((err as Error)?.name !== "AbortError") setError("Could not load this preview. Check the connection and try again.");
       }
     }
   }, [sculptAvailable, setLoading, setResult]);
 
   useEffect(() => {
     const timer = setTimeout(() => loadSeed(seed, sculptAvailable ? smile : 0, sculptAvailable ? hair : 0), 180);
-    return () => { clearTimeout(timer); abortControllerRef.current?.abort(); };
+    return () => {
+      clearTimeout(timer);
+      requestId.current += 1;
+      abortControllerRef.current?.abort();
+    };
   }, [seed, smile, hair, sculptAvailable, loadSeed]);
 
   const resetEdits = () => { setSmile(0); setHair(0); };
@@ -87,7 +93,7 @@ function StudioContent() {
         </Card>
         <Card className="p-5 space-y-4">
           <h2 className="text-sm font-semibold text-text-primary">Choose a seed</h2>
-          <SeedInput value={seed} onChange={setPreviewSeed} label="Preview seed" disabled={isLoading} />
+          <SeedInput value={seed} onChange={setPreviewSeed} label="Preview seed" />
           {sculptAvailable ? <>
             <div className="space-y-5 border-t border-border-subtle pt-4">
               <label className="block text-xs font-medium text-text-primary" htmlFor="smile-slider">Smile tendency (experimental)

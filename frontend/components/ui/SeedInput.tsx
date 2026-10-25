@@ -20,9 +20,12 @@ export const SeedInput: React.FC<SeedInputProps> = ({
 }) => {
   const [isRotating, setIsRotating] = useState(false);
   const [isPresetOpen, setIsPresetOpen] = useState(false);
+  const [draft, setDraft] = useState<{ value: number; text: string } | null>(null);
+  const inputValue = draft?.value === value ? draft.text : String(value);
 
   const handleRandomize = () => {
     setIsRotating(true);
+    setDraft(null);
     const newSeed = Math.floor(Math.random() * 100000);
     onChange(newSeed);
     setTimeout(() => setIsRotating(false), 500);
@@ -82,6 +85,7 @@ export const SeedInput: React.FC<SeedInputProps> = ({
                         key={preset.id}
                         type="button"
                         onClick={() => {
+                          setDraft(null);
                           onChange(preset.seed);
                           setIsPresetOpen(false);
                         }}
@@ -120,12 +124,20 @@ export const SeedInput: React.FC<SeedInputProps> = ({
             type="number"
             min={0}
             max={99999}
-            value={value}
+            value={inputValue}
             disabled={disabled}
             onChange={(e) => {
-              const val = parseInt(e.target.value, 10);
-              onChange(isNaN(val) ? 0 : Math.max(0, Math.min(99999, val)));
+              const raw = e.target.value;
+              setDraft({ value, text: raw });
+              if (/^\d+$/.test(raw)) {
+                const nextValue = Number(raw);
+                if (Number.isFinite(nextValue) && Number.isInteger(nextValue) && nextValue >= 0 && nextValue <= 99999) {
+                  onChange(nextValue);
+                }
+              }
             }}
+            onBlur={() => setDraft(null)}
+            aria-label={label}
             className="w-full px-3 py-2 rounded-xl bg-surface-elevated border border-border-subtle focus:border-accent text-sm font-mono text-text-primary transition-colors outline-none"
           />
         </div>
